@@ -1,12 +1,17 @@
 # Villeneuve_Projet_mi-session
 Présentation des taches envisagées sur le projet ABIDE 
 ## 1) Descritpion du projet original
-Le projet ABIDE, originalement fait par xyz vise à classifier des données d'IRMf au repos de la base de données ABIDE afin de prédire la présence ou non d'un diagnostic de troules du spectre de l'autisme (TSA)
+Le projet ABIDE, originalement fait par Emily Chen, Andréanne Proulx et Mikkel Schöttner  vise à classifier des données d'IRMf au repos de la base de données ABIDE afin de prédire la présence ou non d'un diagnostic de troules du spectre de l'autisme (TSA)
 
 Les données sont transformées en matrices de connectivité fonctionnelle, puis utilisées dans différents modèles de classification avec diverses stratégies de validation croisée. 
 
 ## 2) Pourquoi ce projet ?
-Ce projet a piqué ma curiosité car je m'intéresse aux diagnostics d'autisme et ce projet permet de voir s'il y a des bases en neuroimagerie qui permettraient de discriminer ces diagnostiques. 
+Le projet ABIDE nous a intéressées parce qu’il pose une question ambitieuse :
+peut-on identifier, à partir de données d’IRMf de repos, des patterns de connectivité associés au diagnostic de TSA ?
+
+Bien que le projet soit déjà bien construit, il offre un cadre idéal pour examiner à la fois la performance des modèles et leur rigueur méthodologique. Nous avons donc vu une occasion d’aller au-delà de l’exploration initiale, en structurant davantage l’évaluation et en questionnant certaines étapes du pipeline.
+
+Le contexte clinique renforce la pertinence du projet, puisqu’il implique une réflexion sur la validité des outils utilisés pour discriminer des diagnostics.
 
 ## 3) Taches choisies
 ### Tache 1 : Reproductibilité et infrastructure
