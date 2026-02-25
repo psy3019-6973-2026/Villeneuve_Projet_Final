@@ -7,6 +7,7 @@ Les données sont transformées en matrices de connectivité fonctionnelle, puis
 
 ### Données 
 Dataset: ABIDE (Autism Brain Imaging Data Exchange)
+- Données ouvertes
 - Plusieurs centaines de participants
 - Données multi-sites (plus de 20 sites)
 - IRMf au repos prétraitées
