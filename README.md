@@ -57,14 +57,17 @@ Cette étape est cruciale puisque les tâches suivantes impliquent des modificat
 
 ### Tâche 2 : Correction du pipeline pour éviter le data leakage
 Dans cette tache, le changement apporté concerne la structure du pipeline prepare_data.py
-##### Problème identifié :
+#### Problème identifié : 
+##### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
+    
 Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans prepare_data.py avant la validation croisée.
 
 Bien que par la site, les donéées sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
 La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
 Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
-
-##### Objectif : 
+#### Objectif : 
+##### Extraction des features -> Validation croisée (GroupKFold) 
+##### Pipeline pour chaque fold : StandardScaler -> PCA -> LinearSVC 
 Garantir que toutes les transformations sont apprises uniquement sur les données d’entraînement à chaque fold.
 #### Étapes : 
 - Retirer le PCA global du script prepare_data.py
@@ -74,7 +77,7 @@ Garantir que toutes les transformations sont apprises uniquement sur les donnée
 - Comparaison des deux méthodes pour voir s'il y a une variation significative
 
 #### Remarque :
-L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. 
+L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. Dans ce contexte, le PCA est une étape de prétraitement, mais puisqu’il apprend la structure des données, il doit être recalculé à chaque fold pour éviter un biais d’évaluation.
 
 ### Tâche 3 : Comparaison de stratégies de réduction/sélection de dimensions
 
