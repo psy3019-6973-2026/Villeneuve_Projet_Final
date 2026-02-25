@@ -25,6 +25,7 @@ Le pipeline original comprend :
 - K-Nearest Neighbors
 - Decision Tree
 - Random Forest
+
 Chacun des modèles sont évaluées par différentes méthodes de validation croisée
 Les résultats montrent des performances entre 50 à 70 % d'accuracy
 <img width="1060" height="608" alt="image" src="https://github.com/user-attachments/assets/c0b5e72a-4fff-4d77-a4a1-65680f7fd0db" />
