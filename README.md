@@ -82,7 +82,7 @@ L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une é
 Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic.  
 
 #### Objectif: 
-Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le meme classifieur final (LinearSVC) et la même validation croisée.
+Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée.
 
 <img width="340" height="368" alt="image" src="https://github.com/user-attachments/assets/c521a140-7278-4f97-81f7-342dbc46e442" />
 
@@ -111,7 +111,7 @@ Cette comparaison permettra d’évaluer si une approche supervisée améliore l
 - Accuracy moyenne
 - Variabilité entre folds
 - Nombre de feautures retenues
-##### Si le temps le permet...
+##### Tache Bonus...Si le temps le permet...
 - Optimisation de paramètres et comparaison de performances optimisées
 
 ##### Sources 
