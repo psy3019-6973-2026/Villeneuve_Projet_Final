@@ -116,9 +116,11 @@ Cette comparaison permettra d’évaluer si une approche supervisée améliore l
 - Variabilité entre folds
 - Nombre de feautures retenues
 ##### Tache Bonus...Si le temps le permet...
-- Optimisation de paramètres et comparaison de performances optimisées
-      - Changer le variance du PCA (0.99 -> 0.95)
-      - Changer le paramètre C du modèle LinearSVC
+Optimisation de paramètres et comparaison de performances optimisées
+  
+- Changer le variance du PCA (0.99 -> 0.95)
+  
+- Changer le paramètre C du modèle LinearSVC
 
 ##### Sources 
 ###### Documentation et exemples sur les techniques de sélection de dimensions et leur implémentation
