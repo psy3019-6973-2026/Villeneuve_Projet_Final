@@ -131,5 +131,6 @@ https://scikit-learn.org/stable/modules/feature_selection.html
 https://scikit-learn.org/stable/auto_examples/feature_selection/plot_select_from_model_diabetes.html
 ###### Projet original 
 <https://school.brainhackmtl.org/project/abide-fmri/>
+
 <https://github.com/brainhack-school2020/abide-fmri/tree/master>
 
