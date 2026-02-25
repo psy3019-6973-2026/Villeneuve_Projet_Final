@@ -38,7 +38,6 @@ Le dataset ABIDE étant multi-site, il représente un contexte particulièrement
 - la validation croisée en contexte multi-site
 - les effets de site
 - la réduction de dimension
-- la robustesse méthodologique
 
 Bien que le projet soit déjà bien structuré, il laisse place à des améliorations ciblées du pipeline.
 
