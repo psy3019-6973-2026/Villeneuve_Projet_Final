@@ -1,74 +1,115 @@
-# Villeneuve_Projet_mi-session
-Présentation des taches envisagées sur le projet ABIDE 
-## 1) Descritpion du projet original
+ # 1) Descritpion du projet original
+Using fMRI Data to Predict Autism Diagnoses with Machine Learning
+
 Le projet ABIDE, originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, vise à classifier des données d'IRMf au repos de la base de données ABIDE afin de prédire la présence ou non d'un diagnostic de troules du spectre de l'autisme (TSA)
 
 Les données sont transformées en matrices de connectivité fonctionnelle, puis utilisées dans différents modèles de classification avec diverses stratégies de validation croisée. 
 
-## 2) Pourquoi ce projet ?
-Le projet ABIDE nous a intéressées parce qu’il pose une question ambitieuse :
-peut-on identifier, à partir de données d’IRMf de repos, des patterns de connectivité associés au diagnostic de TSA ?
+## Données 
+Dataset: ABIDE (Autism Brain Imaging Data Exchange)
+- Plusieurs centaines de participants
+- Données multi-sites (plus de 20 sites)
+- IRMf au repos prétraitées
+- Atlas BASC 64 régions
+- Matrices de connectivité fonctionnelle (64 × 64)
+- Variable cible : diagnostic ASD vs TD
+### Préparation
+Le pipeline original comprend :
+- Extraction des séries temporelles via l’atlas BASC
+- Construction des matrices de corrélation région × région
+- Vectorisation des connexions
+- Réduction de dimension via PCA (99 % variance conservée)
+### Modèles testés 
+- LinearSVC (le plus performant)
+- K-Nearest Neighbors
+- Decision Tree
+- Random Forest
+Chacun des modèles sont évaluées par différentes méthodes de validation croisée
+Les résultats montrent des performances entre 50 à 70 % d'accuracy
+#### Piste future logique d'amélioration selon les auteurs : optimisation des paramètres
+# 2) Pourquoi ce projet ?
+Marie ( @MarieFrancois1 ) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme.
 
-Bien que le projet soit déjà bien construit, il offre un cadre idéal pour examiner à la fois la performance des modèles et leur rigueur méthodologique. Nous avons donc vu une occasion d’aller au-delà de l’exploration initiale, en structurant davantage l’évaluation et en questionnant certaines étapes du pipeline.
+Le dataset ABIDE étant multi-site, il représente un contexte particulièrement intéressant pour explorer :
+- la validation croisée en contexte multi-site
+- les effets de site
+- la réduction de dimension
+- la robustesse méthodologique
+Bien que le projet soit déjà bien structuré, il laisse place à des améliorations ciblées du pipeline.
 
-## 3) Taches choisies
-### Tache 1 : Reproductibilité et infrastructure
-#### Dans cette tache, je vais: 
--> Reproduire l'expérience complète dans un environnement vierge
+# 3) Tâches choisies
+## Tâche 1 : Reproductibilité et infrastructure
+### Dans cette tache, je vais: 
+- Reproduire l'expérience complète dans un environnement vierge
 
--> Vérifier que toutes les dépendances fonctionnent correctement
+- Vérifier que toutes les dépendances fonctionnent correctement
 
--> Identifier les problèmes de chemins ou d'installation (s'il y a lieu)
+- Identifier les problèmes de chemins ou d'installation (s'il y a lieu)
 
--> Documenter les étapes nécessaires si des étapes s'ajoutent dans le README 
+- Documenter les étapes nécessaires si des étapes s'ajoutent dans le README 
 
 Cette étape est cruciale puisque les tâches suivantes impliquent des modifications méthodologiques du pipeline.
-### Tache 2 : Modification du pipeline pour éviter le data leakage
+
+## Tâche 2 : Correction du pipeline pour éviter le data leakage
 Dans cette tache, le changement apporté concerne la structure du pipeline prepare_data.py
-#### État actuel : 
-La réduction de dimensions (PCA) est appliquée sur l'ensemble des sujets, y compris ceux qui devraient etre considérés comme inconnus lors de la validation croisée. 
+#### Problème identifié :
+Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans prepare_data.py avant la validation croisée.
 
-Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances, puisqu'elle tient compte de tous les sujets. 
+Bien que par la site, les donéées sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
+La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
+Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
 
-#### Modification voulue : 
--> Utiliser l'outil sklearn.pipeline pour créer une pipeline et y intégrer la réduction de dimensions, puis, appliquer cette pipeline à la validation croisée. 
--> Recalculer le PCA uniquement sur le training set à chaque fold
-#### Résultat attendu : 
--> Les transformations sont appliquées uniquement sur le training set et la valeur PCA dans l'entrainement est celle du set d'entrainement et non du set complet. 
--> Comparaison des deux méthodes pour voir s'il y a une variation significative
+#### Objectif : 
+Garantir que toutes les transformations sont apprises uniquement sur les données d’entraînement à chaque fold.
+#### Étapes : 
+- Retirer le PCA global du script prepare_data.py
+- Utiliser l'outil sklearn.pipeline pour créer une pipeline et y intégrer la réduction de dimensions.
+- Appliquer cette pipeline à l'intérieur de la validation croisée.
+- Recalculer le PCA uniquement sur le training set à chaque fold
+- Comparaison des deux méthodes pour voir s'il y a une variation significative
 
 #### Remarque :
 L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. 
 
-### Tache 3 : Comparer plusieurs modèles de manière systématique 
+### Tache 3 : Comparaison de stratégies de réduction/sélection de dimensions
 
 #### Situation actuelle :
-Le projet utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic.  
+Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic.  
 
-#### Proposition: 
-Nous proposons de comparer cette approche non supervisée à une approche supervisée intégrée : une régression logistique avec régularisation L1
+#### Objectif: 
+Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le meme classifieur final (LinearSVC) et la même validation croisée.
 
-Cette approche sera appliquée au modèle linéaire, puisque les résultats initiaux montrent que LinearSVC est le classifieur le plus performant.
-
-#### Différences entre les deux méthodes : 
-##### PCA : 
+#### Comparaison simplifiée des deux méthodes : 
+##### Pipeline 1 (PCA) : 
 - Méthode non-supervisée
 - Maximise la variance globale
 - Transformation des variables en composantes linéaires
-##### Classifieur linéaire avec régularisation L1: 
+
+###### StandardScaler -> PCA -> LinearSVC
+
+##### Pipeline 2 (sélection supervisée) : 
 - Méthode supervisée
 - Optimisation de la classification TSA vs controles
 - Sélection des connexions les plus pertinentes
 - Coefficients des variables non informatives forcées à zéro
 - Sélection multivariée
-##### Objectif de la comparaison
-Cette comparaison permettra d’évaluer si une approche supervisée intégrée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions.
 
-L’objectif est de déterminer si une réduction basée sur la variance globale (PCA) est aussi pertinente qu’une sélection parcimonieuse directement alignée avec l’objectif de classification
+###### StandardScaler -> SelectFromModel(LogisticRegression L1) -> LinearSVC
+Remarque : la régression logistique L1 est seulement utiliséee pour sélectionner les connexions les plus pertinentes, le classifieur final reste LinearSVC
 
-Des visualisations comparatives (scores, distributions) seront ajoutées à cette analyse. 
+##### Pourquoi la comparaison est pertinente 
+Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions.
+###### Métriques de comparaison et visualisations
+- Accuracy moyenne
+- Variabilité entre folds
+- Nombre de feautures retenues
+##### Si le temps le permet...
+- Optimisation de paramètres et comparaison de performances optimisées
 
 ###### Sources 
 https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html
+https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+https://scikit-learn.org/stable/modules/feature_selection.html
+https://scikit-learn.org/stable/auto_examples/feature_selection/plot_select_from_model_diabetes.html
 
