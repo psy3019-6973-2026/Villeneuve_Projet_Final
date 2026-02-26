@@ -1,9 +1,7 @@
 ## Descritpion du projet original
 ### Using fMRI Data to Predict Autism Diagnoses with Machine Learning
 
-Le projet ABIDE, originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, vise à classifier des données d'IRMf au repos de la base de données ABIDE afin de prédire la présence ou non d'un diagnostic de troules du spectre de l'autisme (TSA)
-
-Les données sont transformées en matrices de connectivité fonctionnelle, puis utilisées dans différents modèles de classification avec diverses stratégies de validation croisée. 
+Originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, ce projet vise à classifier des données d'IRMf au repos de la base de données Autism Brain Imaging Data Exchange (ABIDE) afin de prédire la présence ou non d'un diagnostic de trouble du spectre de l'autisme (TSA).
 
 ### Données 
 Dataset: ABIDE (Autism Brain Imaging Data Exchange)
@@ -12,36 +10,32 @@ Dataset: ABIDE (Autism Brain Imaging Data Exchange)
 - Données multi-sites (plus de 20 sites)
 - IRMf au repos prétraitées
 - Atlas BASC 64 régions
-- Matrices de connectivité fonctionnelle (64 × 64)
-- Variable cible : diagnostic ASD vs TD
-### Préparation
+
+### Préparation (prepare_data.py)
 Le pipeline original comprend :
 - Extraction des séries temporelles via l’atlas BASC
 - Construction des matrices de corrélation région × région
 - Vectorisation des connexions
 - Réduction de dimension via PCA (99 % variance conservée)
+  
 ### Modèles testés 
 - LinearSVC (le plus performant)
 - K-Nearest Neighbors
 - Decision Tree
 - Random Forest
 
-Chacun des modèles sont évaluées par différentes méthodes de validation croisée
-Les résultats montrent des performances entre 50 à 70 % d'accuracy
+Chacun des modèles sont évaluées par différentes méthodes de validation croisée, les résultats montrent des performances entre 50 à 70 % d'accuracy.
+
 <img width="1060" height="608" alt="image" src="https://github.com/user-attachments/assets/c0b5e72a-4fff-4d77-a4a1-65680f7fd0db" />
 
 ###### Image tirée du projet d'Emily Chen, Andréanne Proulx et Mikkel Schöttner
 
-#### Piste future logique d'amélioration selon les auteurs : optimisation des paramètres
+#### Limite et piste future logique d'amélioration selon les auteurs : différence entre les sites, optimisation des paramètres
+
 ## Pourquoi ce projet ?
 Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme.
 
-Le dataset ABIDE étant multi-site, il représente un contexte particulièrement intéressant pour explorer :
-- la validation croisée en contexte multi-site
-- les effets de site
-- la réduction de dimension
-
-Bien que le projet soit déjà bien structuré, il laisse place à des améliorations ciblées du pipeline.
+De plus, le fait que le projet soit déjà bien structuré laisse place à plus de créativité dans les démarches à entreprendre.
 
 ## Tâches choisies
 ### Tâche 1 : Reproductibilité et infrastructure
@@ -52,20 +46,21 @@ Bien que le projet soit déjà bien structuré, il laisse place à des améliora
 
 - Identifier les problèmes de chemins ou d'installation (s'il y a lieu)
 
-- Documenter les étapes nécessaires si des étapes s'ajoutent dans le README 
+- Documenter si des étapes s'ajoutent dans le README 
 
 Cette étape est cruciale puisque les tâches suivantes impliquent des modifications méthodologiques du pipeline.
 
 ### Tâche 2 : Correction du pipeline pour éviter le data leakage
-Dans cette tache, le changement apporté concerne la structure du pipeline prepare_data.py
+Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py
 #### Problème identifié : 
 ##### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
-    
+
 Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans prepare_data.py avant la validation croisée.
 
 Bien que par la site, les donéées sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
 La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
 Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
+
 #### Objectif : 
 ##### Extraction des features -> Validation croisée (GroupKFold) 
 ##### Pipeline pour chaque fold : StandardScaler -> PCA -> LinearSVC 
@@ -103,8 +98,6 @@ Comparer cette approche de sélection de features non supervisée à une approch
 - Méthode supervisée
 - Optimisation de la classification TSA vs controles
 - Sélection des connexions les plus pertinentes
-- Coefficients des variables non informatives forcées à zéro
-- Sélection multivariée
 
 ##### StandardScaler -> SelectFromModel(LogisticRegression L1) -> LinearSVC
 ###### Remarque : la régression logistique L1 est seulement utiliséee pour sélectionner les connexions les plus pertinentes, le classifieur final reste LinearSVC
