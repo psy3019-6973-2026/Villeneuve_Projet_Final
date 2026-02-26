@@ -110,7 +110,7 @@ Cette comparaison permettra d’évaluer si une approche supervisée améliore l
 - Accuracy moyenne
 - Variabilité entre folds
 - Nombre de feautures retenues
-##### Tache Bonus...Si le temps le permet...
+##### Tache Bonus...si nécessaire
 Optimisation de paramètres et comparaison de performances optimisées
   
 - Changer la variance du PCA (0.99 -> 0.95)
