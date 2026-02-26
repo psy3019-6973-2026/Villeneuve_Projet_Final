@@ -30,12 +30,14 @@ Chacun des modèles sont évaluées par différentes méthodes de validation cro
 
 ###### Image tirée du projet d'Emily Chen, Andréanne Proulx et Mikkel Schöttner
 
-#### Limite et piste future logique d'amélioration selon les auteurs : différence entre les sites, optimisation des paramètres
+#### Limite et piste future logique d'amélioration selon les auteurs : 
+- Effets potentiels liés aux sites d’acquisition
+- Absence d’optimisation paramètres
 
 ## Pourquoi ce projet ?
-Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme.
+Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme. 
 
-De plus, le fait que le projet soit déjà bien structuré laisse place à plus de créativité dans les démarches à entreprendre.
+De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
 
 ## Tâches choisies
 ### Tâche 1 : Reproductibilité du projet
