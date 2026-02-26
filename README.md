@@ -6,7 +6,8 @@ Originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, 
 ### Données 
 Dataset: ABIDE (Autism Brain Imaging Data Exchange)
 - Données ouvertes
-- Plusieurs centaines de participants
+- 539 participants avec un diagnostic de TSA
+- 573 participants contrôles typiques (TD)
 - Données multi-sites (plus de 20 sites)
 - IRMf au repos prétraitées
 - Atlas BASC 64 régions
