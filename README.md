@@ -16,7 +16,7 @@ Le pipeline original comprend :
 - Extraction des séries temporelles via l’atlas BASC
 - Construction des matrices de corrélation région × région
 - Vectorisation des connexions
-- Réduction de dimension via PCA (99 % variance conservée)
+- Réduction de dimension via PCA (99 % de la variance conservée)
   
 ### Modèles testés 
 - LinearSVC (le plus performant)
@@ -57,7 +57,7 @@ Dans cette tache, le changement apporté concerne la structure du notebook prepa
 
 Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans prepare_data.py avant la validation croisée.
 
-Bien que par la site, les donéées sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
+Bien que par la suite, les données sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
 La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
 Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
 
@@ -111,7 +111,7 @@ Cette comparaison permettra d’évaluer si une approche supervisée améliore l
 ##### Tache Bonus...Si le temps le permet...
 Optimisation de paramètres et comparaison de performances optimisées
   
-- Changer le variance du PCA (0.99 -> 0.95)
+- Changer la variance du PCA (0.99 -> 0.95)
   
 - Changer le paramètre C du modèle LinearSVC
 
