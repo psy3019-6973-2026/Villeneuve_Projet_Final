@@ -1,5 +1,5 @@
-## Descritpion du projet original
-### Using fMRI Data to Predict Autism Diagnoses with Machine Learning
+## Description du projet original
+### Titre : Using fMRI Data to Predict Autism Diagnoses with Machine Learning
 
 Originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, ce projet vise à classifier des données d'IRMf au repos de la base de données Autism Brain Imaging Data Exchange (ABIDE) afin de prédire la présence ou non d'un diagnostic de trouble du spectre de l'autisme (TSA).
 
