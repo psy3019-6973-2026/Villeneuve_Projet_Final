@@ -38,7 +38,7 @@ Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi
 De plus, le fait que le projet soit déjà bien structuré laisse place à plus de créativité dans les démarches à entreprendre.
 
 ## Tâches choisies
-### Tâche 1 : Reproductibilité et infrastructure
+### Tâche 1 : Reproductibilité du projet
 #### Dans cette tache, je vais: 
 - Reproduire l'expérience complète dans un environnement vierge
 
@@ -59,7 +59,7 @@ Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans p
 
 Bien que par la suite, les données sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
 La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
-Bien que cette méthode soit non-supervisé et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
+Bien que cette méthode soit non-supervisée et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
 
 #### Objectif : 
 ##### Extraction des features -> Validation croisée (GroupKFold) 
