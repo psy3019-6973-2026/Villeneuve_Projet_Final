@@ -158,13 +158,16 @@ L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une é
 - Ce biais est faible et positif (il améliore la performance du Linear   SVC!)
 - Apprentissage : un data leakage peut améliorer ou empirer une performance dans une stratégie de réduction de dimensions non-supervisée! (j'étais choquée)
 
-### Tâche 3 : Comparaison de stratégies de réduction de dimensions et illustrer l'impact sur le data leakage
+### Tâche 3 : 
+#### Tache 3a : Comparaison de stratégies de réduction de dimensions 
+#### Tache 3b : Illustrer l'impact de l'utilisation de la méthode supervisée sur le data leakage
 
 #### Situation actuelle :
-Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic. L'idée ici est de comparer une méthode supervisée et une méthode non-supervisée, ainsi que justifier que le script original faisait bel et bien illustration de data leakage. 
+Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic. L'idée ici est de comparer une méthode supervisée et une méthode non-supervisée, ainsi que justifier que le script original faisait bel et bien illustration de data leakage. Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions. Elle permet aussi d'illustrer l'impact du data leakage
 
-#### Objectif: 
-Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée, avant et après correction du data leakage.
+#### Tache 3a 
+##### Objectif: 
+Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée.
 
 #### Comparaison simplifiée des deux méthodes : 
 ##### Pipeline 1 (PCA) : 
@@ -180,9 +183,19 @@ Comparer cette approche de sélection de features non supervisée à une approch
 - Sélection des 100 connexions les plus importantes
 
 ##### StandardScaler -> SelectKBest -> LinearSVC
+***
+### Résultat : 
+Suite à la correction, on remarque que la méthode non-supervisée (PCA) performe mieux dans le 10 GroupKFold que la méthode SelectKBest. 
+***
+#### Tache 3b 
+##### Objectif : implémenter SelectKBest dans l'ancien notebook prepare_data.py avec data leakage puis comparer la différence entre les deux approches 
 
-##### Pourquoi la comparaison est pertinente 
-Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions. Elle permet aussi d'illustrer l'impact du data leakage
+###### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
+###### Extraction des features -> SelectKBest (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
+***
+#### Résultat : 
+On observe effectivement que le data leakage est minime dans la PCA (2.7%) mais l'impact est DOUBLÉ avec la méthode SelectKBest (5.4%).
+***
 ##### Métriques de comparaison et visualisations
 - Accuracy moyenne
 - Variabilité entre folds
