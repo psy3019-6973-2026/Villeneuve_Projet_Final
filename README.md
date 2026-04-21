@@ -27,10 +27,6 @@ Le pipeline original comprend :
 
 Chacun des modèles sont évaluées par différentes méthodes de validation croisée, les résultats montrent des performances entre 50 à 70 % d'accuracy.
 
-<img width="1060" height="608" alt="image" src="https://github.com/user-attachments/assets/c0b5e72a-4fff-4d77-a4a1-65680f7fd0db" />
-
-###### Image tirée du projet d'Emily Chen, Andréanne Proulx et Mikkel Schöttner
-
 #### Limite et piste future logique d'amélioration selon les auteurs : 
 - Effets potentiels liés aux sites d’acquisition
 - Absence d’optimisation paramètres
@@ -41,17 +37,82 @@ Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi
 De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
 
 ## Tâches choisies
-### Tâche 1 : Reproductibilité du projet
-#### Dans cette tache, je vais: 
-- Reproduire l'expérience complète dans un environnement vierge
+### Tâche 1 : Reproductibilité du projet du projet original et automatisation avec invoke 
+#### Objectif : S'assurer que le code original fonctionne dans un environnement vierge et automatiser la reproduction du projet 
+Trouvailles : 
+- le requirements.txt du projet original était expiré puisque le projet a été fait en 2020
+- il a fallut créer un nouveau : requirements-modern.txt
+- il a fallut changer le code prepare_data pour changer l'appel de certaines librairies qui avaient changé de nom.
+- tenter la reproduction
+##### Confirmation : suite à ces corrections Marie a pu reproduire le projet sans problème et entamer elle meme ses taches. 
+### Invoke : 
+Puisque les changements ont pris moins de temps que prévu j'ai ajouté la fonction invoke sur toutes mes taches pour automatiser et optimiser la reproductibilité de mon travail.
+### Prérequis
 
-- Vérifier que toutes les dépendances fonctionnent correctement
+- Python 3.10+
+- Conda **ou** venv
 
-- Identifier les problèmes de chemins ou d'installation (s'il y a lieu)
+### Installation rapide
 
-- Documenter si des étapes s'ajoutent dans le README 
+```bash
+git clone https://github.com/psy3019-6973-2026/Villeneuve_Projet_Final
+cd Villeneuve_Projet_Final
 
-Cette étape est cruciale puisque les tâches suivantes impliquent des modifications méthodologiques du pipeline.
+# Option 1: Conda
+conda env create -f environment.yml
+conda activate abide-fmri
+
+# Option 2: venv
+python -m venv venv_abide
+source venv_abide/bin/activate  # Windows: venv_abide\Scripts\activate
+pip install -r requirements-modern.txt
+```
+## Structure du projet
+
+```
+abide-fmri/
+├── Taches/
+│   ├── prepare_data_v2.py              # Préparation des données (features brutes)
+│   ├── tache_2_pca_pipeline_cv.ipynb   # Correction du data leakage (PCA)
+│   ├── tache_3_selectkbest_pipeline_cv.ipynb  # Supervisé vs non-supervisé
+│   ├── comparaison_4_approches.ipynb   # Synthèse des 4 approches
+│   └── output/                         # Résultats & figures
+├── data/                               # Dataset ABIDE (téléchargé automatiquement)
+├── environment.yml
+└── requirements-modern.txt
+```
+### Exécution
+
+Une fois l'environnement activé (conda ou venv):
+
+```bash
+# Enregistrer le kernel Jupyter
+invoke setup
+
+# Télécharger les données et extraire les features (~8h la première fois)
+invoke fetch
+
+# Lancer toutes les analyses
+invoke run
+```
+### Autres tâches disponibles
+
+| Commande | Description |
+|---|---|
+| `invoke setup` | Enregistrer le kernel Jupyter |
+| `invoke fetch` | Télécharger les données ABIDE et extraire les features |
+| `invoke task2` | Exécuter la Tâche 2 (correction PCA) |
+| `invoke task3` | Exécuter la Tâche 3 (leakage SelectKBest) |
+| `invoke run` | Exécuter toutes les analyses (`fetch` + `task2` + `task3`) |
+| `invoke clean` | Supprimer les outputs générés (préserve les features en cache) |
+
+```bash
+invoke --list            # afficher toutes les tâches disponibles
+invoke --help <tâche>    # afficher l'aide pour une tâche spécifique
+```
+
+
+> L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `output/ABIDE_BASC064_features.npz` existe déjà.
 
 ### Tâche 2 : Correction du pipeline pour éviter le data leakage
 Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py
@@ -75,20 +136,36 @@ Garantir que toutes les transformations sont apprises uniquement sur les donnée
 - Recalculer le PCA uniquement sur le training set à chaque fold
 - Comparaison des deux méthodes pour voir s'il y a une variation significative
 
+```python
+# Avant (avec leakage)
+X_pca = PCA(0.99).fit_transform(X)  # Tous les sujets!
+cv_scores = cross_val_score(LinearSVC(), X_pca, y, cv=gkfold)
+
+# Après (sans leakage)
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('pca', PCA(0.99)),
+    ('classifier', LinearSVC())
+])
+cv_scores = cross_val_score(pipeline, X, y, cv=gkfold)
+```
+
 #### Remarque :
 L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. Dans ce contexte, le PCA est une étape de prétraitement, mais puisqu’il apprend la structure des données, il doit être recalculé à chaque fold pour éviter un biais d’évaluation.
 
-### Tâche 3 : Comparaison de stratégies de réduction/sélection de dimensions
+#### Résultat quantitatif : 
+- Il y avait un biais introduit par le leakage (~ 2,7%)
+- Ce biais est faible et positif (il améliore la performance du Linear   SVC!)
+- Apprentissage : un data leakage peut améliorer ou empirer une performance dans une stratégie de réduction de dimensions non-supervisée! (j'étais choquée)
+
+### Tâche 3 : Comparaison de stratégies de réduction de dimensions et illustrer l'impact sur le data leakage
 
 #### Situation actuelle :
-Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic.  
+Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic. L'idée ici est de comparer une méthode supervisée et une méthode non-supervisée, ainsi que justifier que le script original faisait bel et bien illustration de data leakage. 
 
 #### Objectif: 
-Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée.
+Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée, avant et après correction du data leakage.
 
-<img width="340" height="368" alt="image" src="https://github.com/user-attachments/assets/c521a140-7278-4f97-81f7-342dbc46e442" />
-
-###### Image tirée du projet d'Emily Chen, Andréanne Proulx et Mikkel Schöttner
 #### Comparaison simplifiée des deux méthodes : 
 ##### Pipeline 1 (PCA) : 
 - Méthode non-supervisée
@@ -100,33 +177,43 @@ Comparer cette approche de sélection de features non supervisée à une approch
 ##### Pipeline 2 (sélection supervisée) : 
 - Méthode supervisée
 - Optimisation de la classification TSA vs controles
-- Sélection des connexions les plus pertinentes
+- Sélection des 100 connexions les plus importantes
 
-##### StandardScaler -> SelectFromModel(LogisticRegression L1) -> LinearSVC
-###### Remarque : la régression logistique L1 est seulement utiliséee pour sélectionner les connexions les plus pertinentes, le classifieur final reste LinearSVC
+##### StandardScaler -> SelectKBest -> LinearSVC
 
 ##### Pourquoi la comparaison est pertinente 
-Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions.
+Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions. Elle permet aussi d'illustrer l'impact du data leakage
 ##### Métriques de comparaison et visualisations
 - Accuracy moyenne
 - Variabilité entre folds
 - Nombre de feautures retenues
-##### Tache Bonus...si nécessaire
-Optimisation de paramètres et comparaison de performances optimisées
   
-- Changer la variance du PCA (0.99 -> 0.95)
-  
-- Changer le paramètre C du modèle LinearSVC
+#### Outils utilisés 
+Nilearn : téléchargement ABIDE, extraction de connectivité 
 
-##### Sources 
+Scikit-learn : pipelines, validation croisée, ML 
+
+Numpy & pandas : manipulation de données
+
+Matplotlib & seaborn : visualisations
+
+#### Sources 
 ###### Documentation et exemples sur les techniques de sélection de dimensions et leur implémentation
+https://scikit-learn.org/stable/modules/cross_validation.html
+https://scikit-learn.org/stable/modules/compose.html
 https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html
-https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
 https://scikit-learn.org/stable/modules/feature_selection.html
-https://scikit-learn.org/stable/auto_examples/feature_selection/plot_select_from_model_diabetes.html
+https://scikit-learn.org/stable/auto_examples/feature_selection/
 ###### Projet original 
-<https://school.brainhackmtl.org/project/abide-fmri/>
-
+Chen E., Proulx A., Schöttner M. (2020). *Using fMRI Data to Predict Autism Diagnoses with Various Machine Learning Models and Cross-Validation Methods*. BrainHack School 2020.
 <https://github.com/brainhack-school2020/abide-fmri/tree/master>
+###### Données 
+ABIDE: http://fcon_1000.projects.nitrc.org/indi/abide/
+###### Articles scientifiques 
+Nielsen, J. A., Zielinski, B. A., Fletcher, P. T., Alexander, A. L., Lange, N., Bigler, E. D., ... & Anderson, J. S. (2013). Multisite functional connectivity MRI classification of autism: ABIDE results. *Frontiers in Human Neuroscience*, 7, 599.
 
+Anderson, J. S., Patel, V. B., Preedy, V. R., & Martin, C. R. (2014). Cortical underconnectivity hypothesis in autism. *Comprehensive Guide to Autism*, 1457–1471.
+###### Licence 
+MIT (voir [LICENSE](LICENSE))
+###### Licence du projet original 
+Creative Commons 
