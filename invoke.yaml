@@ -1,0 +1,3 @@
+source_data_dir: data
+output_data_dir: Taches/output
+notebooks_dir: Taches
