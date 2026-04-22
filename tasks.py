@@ -37,7 +37,6 @@ OUTPUT_DATA = TACHES_DIR / "output"
 
 TACHE2_DIR  = TACHES_DIR / "Tache2_PCA"
 TACHE3_DIR  = TACHES_DIR / "Tache3_SelectKBest"
-TACHE1_DIR  = TACHES_DIR / "Tache1_Setup"
 
 
 def _env():
