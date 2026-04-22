@@ -69,7 +69,7 @@ Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibl
 |---|---|
 | `environment.yml` | Définition de l'environnement conda (toutes les dépendances) |
 | `requirements-modern.txt` | Dépendances mises à jour pour un environnement venv |
-| `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [airoh](https://github.com/ContextLab/airoh) |
+| `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [https://github.com/airoh-pipeline/airoh-template/tree/main] |
 | `tasks.py` | Définition des tâches `invoke` |
  
 > Ces fichiers sont placés à la racine du dépôt pour faciliter l'installation, mais ont été créés dans le cadre de cette tâche.
@@ -303,7 +303,7 @@ Avec `SelectKBest`, le leakage est direct : les features sont choisies précisé
 - **[scikit-learn](https://scikit-learn.org/)** — pipelines, validation croisée, modèles ML
 - **[numpy](https://numpy.org/) & [pandas](https://pandas.pydata.org/)** — manipulation de données
 - **[matplotlib](https://matplotlib.org/) & [seaborn](https://seaborn.pydata.org/)** — visualisations
-- **[invoke](https://www.pyinvoke.org/)** — automatisation des tâches (template [airoh](https://github.com/ContextLab/airoh))
+- **[invoke](https://www.pyinvoke.org/)** — automatisation des tâches (template [airoh](https://github.com/airoh-pipeline/airoh-template/tree/main))
 ---
 
 ## Sources
@@ -315,6 +315,7 @@ Avec `SelectKBest`, le leakage est direct : les features sont choisies précisé
 - PCA : https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
 - Sélection de features : https://scikit-learn.org/stable/modules/feature_selection.html
 - Exemples de sélection de features : https://scikit-learn.org/stable/auto_examples/feature_selection/
+
 ### Projet original
  
 Chen E., Proulx A., Schöttner M. (2020). *Using fMRI Data to Predict Autism Diagnoses with Various Machine Learning Models and Cross-Validation Methods.* BrainHack School 2020.  
