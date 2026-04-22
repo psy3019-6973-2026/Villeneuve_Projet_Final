@@ -30,9 +30,6 @@ La classification est réalisée par un **LinearSVC** (`max_iter=10000`), évalu
 ```
 Villeneuve_Projet_Final/
 ├── Taches/
-│   ├── Tache1_Setup/
-│   │   ├── environment.yml                      # Environnement conda
-│   │   └── requirements-modern.txt              # Dépendances pour venv
 │   ├── Tache2_PCA/
 │   │   └── Tache_2_pca_pipeline_cv.ipynb        # Correction du data leakage — PCA dans CV
 │   └── Tache3_SelectKBest/
@@ -40,6 +37,9 @@ Villeneuve_Projet_Final/
 │       └── Tache_3b_comparaison.ipynb           # Démonstration du leakage + comparaison
 ├── prepare_data_v2.py                           # Extraction des features (brutes, sans PCA)
 ├── tasks.py                                     # Tâches invoke
+├── invoke.yaml                                  # Configuration invoke (chemins des répertoires)
+├── environment.yml                              # Environnement conda
+├── requirements-modern.txt                      # Dépendances pour venv
 └── LICENSE
 ```
  
@@ -64,13 +64,15 @@ Le projet original reposait sur un environnement `venv` avec un `requirements.tx
 Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibles avec les deux options d'environnement. Suite à ces corrections, Marie a pu reproduire le projet sans problème.
 
 ### Fichiers ajoutés
- 
+
 | Fichier | Rôle |
 |---|---|
 | `environment.yml` | Définition de l'environnement conda (toutes les dépendances) |
 | `requirements-modern.txt` | Dépendances mises à jour pour un environnement venv |
 | `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [airoh](https://github.com/ContextLab/airoh) |
 | `tasks.py` | Définition des tâches `invoke` |
+ 
+> Ces fichiers sont placés à la racine du dépôt pour faciliter l'installation, mais ont été créés dans le cadre de cette tâche.
 
 ### Installation et reproduction
  
@@ -85,7 +87,7 @@ Deux options sont ensuite disponibles pour configurer l'environnement :
  
 ---
  
-#### Option A — conda
+#### Option A : conda
  
 **Prérequis :** [Miniconda](https://docs.conda.io/en/latest/miniconda.html) ou [Anaconda](https://www.anaconda.com/)
  
@@ -94,7 +96,7 @@ conda env create -f environment.yml
 conda activate abide-fmri
 ```
  
-#### Option B — venv (sans conda)
+#### Option B : venv (sans conda)
  
 ```bash
 # Linux / macOS
@@ -113,28 +115,24 @@ pip install -r requirements-modern.txt
 Une fois l'environnement activé :
  
 ```bash
-# Enregistrer le kernel Jupyter
-invoke setup
- 
-# Télécharger les données et extraire les features (~8h la première fois)
-invoke fetch
+# Enregistrer le kernel et télécharger les données ABIDE (~8h la première fois)
+invoke tache1
  
 # Lancer toutes les analyses
 invoke run
 ```
  
 > L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `Taches/output/ABIDE_BASC064_features.npz` existe déjà.
-
+ 
 ### Tâches disponibles
  
 | Commande | Description |
 |---|---|
-| `invoke setup` | Enregistrer le kernel Jupyter |
-| `invoke fetch` | Télécharger les données ABIDE et extraire les features |
-| `invoke task2` | Exécuter la Tâche 2 (correction PCA) |
-| `invoke task3` | Exécuter la Tâche 3 (leakage SelectKBest) |
-| `invoke visualisation` | Exécuter la visualisation comparative des 4 approches |
-| `invoke run` | Exécuter toutes les analyses (`fetch` + `task2` + `task3` + `visualisation`) |
+| `invoke tache1` | Enregistrer le kernel Jupyter et télécharger les données ABIDE |
+| `invoke tache2` | Exécuter la Tâche 2 (correction PCA) |
+| `invoke tache3` | Exécuter la Tâche 3 (leakage SelectKBest) |
+| `invoke visualisation` | Exécuter la comparaison des approches (Tâche 3b) |
+| `invoke run` | Exécuter le pipeline complet (`tache1` + `tache2` + `tache3` + `visualisation`) |
 | `invoke clean` | Supprimer les outputs générés (préserve les features en cache) |
  
 ```bash
@@ -143,7 +141,6 @@ invoke --help <tâche>     # afficher l'aide pour une tâche spécifique
 ```
  
 ---
-
 ## Tâche 2 — Correction méthodologique : PCA et StratifiedGroupKFold
  
 ### Problème identifié
@@ -210,7 +207,7 @@ cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
  
 La correction produit une accuracy légèrement **plus élevée** dans les deux types de CV (+1.7% pour GKF, +1.9% pour SGKF). Cela s'explique par le fait que fitter la PCA sur un plus petit set d'entraînement retient moins de composantes (~538 vs 577), ce qui équivaut à une régularisation plus forte et améliore la généralisation à de nouveaux sites.
  
-Le `StratifiedGroupKFold` donne une accuracy légèrement plus basse que le `GroupKFold` standard, ce qui est attendu : en imposant un équilibre des classes dans chaque fold, on obtient une évaluation plus rigoureuse mais légèrement plus pessimiste.
+Le `StratifiedGroupKFold` donne une accuracy légèrement plus basse que le `GroupKFold` standard, ce qui est attendu : en imposant un équilibre des classes dans chaque fold, on obtient une évaluation plus rigoureuse mais légèrement plus pessimiste.La différence est cependant négligeable (<1%) pour ABIDE, qui est un dataset relativement équilibré (~46/54% ASD/contrôles)
  
 L'enjeu principal n'est pas la magnitude de ces écarts, mais le **principe méthodologique** : toute transformation qui apprend depuis les données doit être fittée *exclusivement* sur le fold d'entraînement. Le contraste avec la Tâche 3 l'illustre clairement.
  
@@ -227,12 +224,13 @@ Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA
  
 #### Pipelines comparés
  
+ 
 ```
 Pipeline PCA (non-supervisé) :
-StandardScaler → PCA(99%) → LinearSVC
+PCA(99%) → LinearSVC
  
 Pipeline SelectKBest (supervisé) :
-StandardScaler → SelectKBest(f_classif, k=100) → LinearSVC
+SelectKBest(f_classif, k=100) → LinearSVC
 ```
  
 `SelectKBest(f_classif, k=100)` utilise un test ANOVA F pour sélectionner les 100 connexions fonctionnelles les plus discriminantes entre ASD et contrôles.
@@ -262,11 +260,10 @@ Les sujets du jeu de test ont participé à la sélection des features : les con
 ```
 CV split (GroupKFold, 10 sites)
 └─> Pour chaque fold :
-      StandardScaler                    → fit sur train, transform train+test
       SelectKBest(f_classif, k=100)     → fit sur train (y_train uniquement), transform train+test
       LinearSVC                         → fit sur train, score sur test
 ```
- 
+
 #### Fichier
  
 | Fichier | Description |
@@ -285,8 +282,8 @@ CV split (GroupKFold, 10 sites)
  
 | Méthode | Type | Direction de l'effet | Magnitude |
 |---|---|---|---|
-| PCA (Tâche 2) | Non-supervisée | Imprévisible | **plus ou moins**~1-2% |
-| SelectKBest (Tâche 3) | Supervisée | **Toujours à la hausse** | ~5% |
+| PCA (Tâche 2) | Non-supervisée | Imprévisible (+ ou −) | ~1–2% |
+| SelectKBest (Tâche 3) | Supervisée | **Toujours à la hausse** | ~3.8% |
  
 Avec la PCA, le leakage est indirect : connaître la structure de variance des sujets test n'aide pas directement à les classifier. L'effet est faible et peut aller dans les deux sens.
  
@@ -295,25 +292,29 @@ Avec `SelectKBest`, le leakage est direct : les features sont choisies précisé
 ---
 
   
-#### Outils utilisés 
-Nilearn : téléchargement ABIDE, extraction de connectivité 
+## Outils utilisés
+ 
+- **[nilearn](https://nilearn.github.io/)** — téléchargement ABIDE, extraction de connectivité fonctionnelle
+- **[scikit-learn](https://scikit-learn.org/)** — pipelines, validation croisée, modèles ML
+- **[numpy](https://numpy.org/) & [pandas](https://pandas.pydata.org/)** — manipulation de données
+- **[matplotlib](https://matplotlib.org/) & [seaborn](https://seaborn.pydata.org/)** — visualisations
+- **[invoke](https://www.pyinvoke.org/)** — automatisation des tâches (template [airoh](https://github.com/ContextLab/airoh))
+---
 
-Scikit-learn : pipelines, validation croisée, ML 
+## Sources
+ 
+### Documentation technique
 
-Numpy & pandas : manipulation de données
+- Cross-validation : https://scikit-learn.org/stable/modules/cross_validation.html
+- Pipelines scikit-learn : https://scikit-learn.org/stable/modules/compose.html
+- PCA : https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+- Sélection de features : https://scikit-learn.org/stable/modules/feature_selection.html
+- Exemples de sélection de features : https://scikit-learn.org/stable/auto_examples/feature_selection/
+### Projet original
+ 
+Chen E., Proulx A., Schöttner M. (2020). *Using fMRI Data to Predict Autism Diagnoses with Various Machine Learning Models and Cross-Validation Methods.* BrainHack School 2020.  
+https://github.com/brainhack-school2020/abide-fmri/tree/master
 
-Matplotlib & seaborn : visualisations
-
-#### Sources 
-###### Documentation et exemples sur les techniques de sélection de dimensions et leur implémentation
-https://scikit-learn.org/stable/modules/cross_validation.html
-https://scikit-learn.org/stable/modules/compose.html
-https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-https://scikit-learn.org/stable/modules/feature_selection.html
-https://scikit-learn.org/stable/auto_examples/feature_selection/
-###### Projet original 
-Chen E., Proulx A., Schöttner M. (2020). *Using fMRI Data to Predict Autism Diagnoses with Various Machine Learning Models and Cross-Validation Methods*. BrainHack School 2020.
-<https://github.com/brainhack-school2020/abide-fmri/tree/master>
 ###### Données 
 ABIDE: http://fcon_1000.projects.nitrc.org/indi/abide/
 ###### Articles scientifiques 
