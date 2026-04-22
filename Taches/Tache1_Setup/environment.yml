@@ -1,0 +1,18 @@
+name: abide-fmri
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+    - numpy
+    - scipy
+    - pandas
+    - scikit-learn
+    - nilearn
+    - jupyter
+    - ipykernel
+    - matplotlib
+    - seaborn
+    - invoke

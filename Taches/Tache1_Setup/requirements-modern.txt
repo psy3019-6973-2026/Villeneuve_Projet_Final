@@ -1,0 +1,13 @@
+numpy
+scipy
+pandas
+scikit-learn
+nilearn
+jupyter
+ipykernel
+matplotlib
+seaborn
+invoke
+
+
+
