@@ -202,7 +202,9 @@ cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
 | PCA avant CV (leakage) | StratifiedGroupKFold | 62.8% |
 | PCA dans CV (corrigé) | GroupKFold | **65.3%** |
 | PCA dans CV (corrigé) | StratifiedGroupKFold | 64.7% |
- 
+
+ <img width="1262" height="489" alt="image" src="https://github.com/user-attachments/assets/c921b89d-1ef8-4ddf-b99b-ac31c0d560a3" />
+
 ### Interprétation
  
 La correction produit une accuracy légèrement **plus élevée** dans les deux types de CV (+1.7% pour GKF, +1.9% pour SGKF). Cela s'explique par le fait que fitter la PCA sur un plus petit set d'entraînement retient moins de composantes (~538 vs 577), ce qui équivaut à une régularisation plus forte et améliore la généralisation à de nouveaux sites.
