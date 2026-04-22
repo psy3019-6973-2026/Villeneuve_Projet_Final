@@ -76,7 +76,7 @@ def tache1(c):
         return
     SOURCE_DATA.mkdir(parents=True, exist_ok=True)
     c.run(
-        f"python {TACHES_DIR / 'prepare_data_v2.py'} {SOURCE_DATA} {OUTPUT_DATA}",
+        f"python {ROOT / 'prepare_data_v2.py'} {SOURCE_DATA} {OUTPUT_DATA}",
         pty=True
     )
 
