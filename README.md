@@ -279,6 +279,9 @@ CV split (GroupKFold, 10 sites)
 | SelectKBest avant CV (leakage) | 64.8% |
 | SelectKBest dans CV (corrigé) | **61.0%** |
 | Différence | **−3.8%** |
+
+<img width="1263" height="519" alt="image" src="https://github.com/user-attachments/assets/021c055c-c9fb-499f-8d91-eb1e1679e11b" />
+
  
 #### Pourquoi le leakage supervisé est plus grave
  
