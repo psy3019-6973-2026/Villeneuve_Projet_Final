@@ -114,7 +114,7 @@ invoke --help <tâche>    # afficher l'aide pour une tâche spécifique
 
 > L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `output/ABIDE_BASC064_features.npz` existe déjà.
 
-### Tâche 2 : Correction du pipeline pour éviter le data leakage
+### Tâche 2 : Correction du pipeline pour éviter le data leakage et test d'une CV de type Stratified GroupKFold
 Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py
 #### Problème identifié : 
 ##### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
@@ -124,6 +124,8 @@ Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans p
 Bien que par la suite, les données sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
 La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
 Bien que cette méthode soit non-supervisée et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
+
+De plus, lors du cours de selection de modeles avec Pravish nous avons vu que le 'meilleur des deux mondes' dans une CV etait le stratiied groupkfold donc pour bonifier mon travail et voir l'impact dune CV mieux adaptee aux donnees j'ai decide d'ajouter cette methode aussi 
 
 #### Objectif : 
 ##### Extraction des features -> Validation croisée (GroupKFold) 
