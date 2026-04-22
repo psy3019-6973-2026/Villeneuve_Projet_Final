@@ -1,215 +1,300 @@
-## Description du projet original
-### Titre : Using fMRI Data to Predict Autism Diagnoses with Machine Learning
+# Projet ABIDE — Prédiction du TSA à partir de l'IRMf de repos
 
-Originalement réalisé par Emily Chen, Andréanne Proulx et Mikkel Schöttner, ce projet vise à classifier des données d'IRMf au repos de la base de données Autism Brain Imaging Data Exchange (ABIDE) afin de prédire la présence ou non d'un diagnostic de trouble du spectre de l'autisme (TSA).
+**Cours :** PSY3019
 
-### Données 
-Dataset: ABIDE (Autism Brain Imaging Data Exchange)
-- Données ouvertes
-- 539 participants avec un diagnostic de TSA
-- 573 participants contrôles typiques (TD)
-- Données multi-sites (plus de 20 sites)
-- IRMf au repos prétraitées
-- Atlas BASC 64 régions
+**Nom :** Eva Villeneuve
 
-### Préparation (prepare_data.py)
-Le pipeline original comprend :
-- Extraction des séries temporelles via l’atlas BASC
-- Construction des matrices de corrélation région × région
-- Vectorisation des connexions
-- Réduction de dimension via PCA (99 % de la variance conservée)
-  
-### Modèles testés 
-- LinearSVC (le plus performant)
-- K-Nearest Neighbors
-- Decision Tree
-- Random Forest
+**Projet original :** [Chen, Proulx & Schöttner — BrainHack School 2020](https://github.com/brainhack-school2020/abide-fmri) 
 
-Chacun des modèles sont évaluées par différentes méthodes de validation croisée, les résultats montrent des performances entre 50 à 70 % d'accuracy.
+**Base de données :** [ABIDE (Autism Brain Imaging Data Exchange)](http://fcon_1000.projects.nitrc.org/indi/abide/)
+ 
+---
 
-#### Limite et piste future logique d'amélioration selon les auteurs : 
-- Effets potentiels liés aux sites d’acquisition
-- Absence d’optimisation paramètres
-
-## Pourquoi ce projet ?
+## Présentation du projet
+ 
+Ce projet reproduit et améliore le pipeline de classification du [Brainhack School 2020](https://github.com/brainhack-school2020/abide-fmri), dont l'objectif est de prédire un diagnostic de trouble du spectre de l'autisme (TSA) à partir de données d'IRM fonctionnelle de repos (IRMf). 
+### Pourquoi ce projet ?
 Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme. 
 
 De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
+### Données 
+Le dataset ABIDE regroupe des données de 871 participants provenant de 20 sites d'acquisition différents (403 contrôles, 468 ASD). Les données sont prétraitées via le pipeline CPAC (quality-checked) et téléchargées automatiquement via `nilearn`.
 
-## Présentation des taches 
-### Tâche 1 : Reproductibilité du projet du projet original et automatisation avec invoke 
-#### Objectif : S'assurer que le code original fonctionne dans un environnement vierge, moderniser et automatiser la reproduction du projet 
-Trouvailles : 
-- Les dépendences contenues dans requirements.txt et prepare_data.py du projet original était expiré puisque le projet a été fait en 2020.
-  - Conséquences:
-                  - Il a fallut moderniser les dépendences : requirements-modern.txt
-                  - Il a fallut changer le code prepare_data pour changer l'appel de certaines librairies qui avaient changé de nom: prepare_datav2.py
-- Tenter la reproduction
+### Pipeline de base
+Les features sont extraites à partir des séries temporelles de 64 régions cérébrales définies par l'atlas BASC, à l'aide d'un `NiftiLabelsMasker`. Une matrice de connectivité fonctionnelle vectorisée est calculée par sujet, produisant une matrice de features de dimension **(871, 2016)**.
+
+La classification est réalisée par un **LinearSVC** (`max_iter=10000`), évalué en **GroupKFold** à 10 splits groupés par site d'acquisition, afin de simuler la généralisation à de nouveaux sites.
+
+### Structure du projet
+ 
+```
+Villeneuve_Projet_Final/
+├── Taches/
+│   ├── prepare_data_v2.py                       # Extraction des features (brutes, sans PCA)
+│   ├── Tache2_PCA/
+│   │   └── tache_2_pca_pipeline_cv.ipynb        # Correction du data leakage — PCA dans CV
+│   ├── Tache3_SelectKBest/
+│   │   ├── Tache_3a_selectkbest_cv.ipynb        # SelectKBest corrigé (dans CV)
+│   │   └── Tache_3b_comparaison.ipynb           # Comparaison des 4 approches
+│   └── output/                                  # Figures générées
+├── data/                                        # Dataset ABIDE (téléchargé automatiquement)
+├── environment.yml                              # Environnement conda
+├── requirements-modern.txt                      # Dépendances pour venv
+├── tasks.py                                     # Tâches invoke
+
+```
+ 
+---
+
+## Tâche 1 — Reproductibilité et automatisation avec `invoke`
+ 
+### Problème identifié
+ 
+Le projet original reposait sur un environnement `venv` avec un `requirements.txt` figé datant de 2020. Plusieurs dépendances étaient expirées et certains appels à `nilearn` utilisaient des chemins anciens, rendant le code non fonctionnel dans un environnement moderne. L'exécution nécessitait également plusieurs étapes manuelles.
   
-##### Confirmation : suite à ces corrections Marie a pu reproduire le projet sans problème et entamer elle meme ses taches. 
+### Changements apportés
+ 
+| | Original | Actuel |
+|---|---|---|
+| Environnement | `venv` + `requirements.txt` | `conda` + `environment.yml` **ou** `venv` + `requirements-modern.txt` |
+| Exécution des tâches | Étapes manuelles | `invoke` + `tasks.py` |
+| Exécution des notebooks | JupyterLab (interactif) | `nbconvert` (automatique via `invoke run`) |
+| Import nilearn | `nilearn.input_data` | `nilearn.maskers` |
+| API atlas | `fetch_atlas_basc_multiscale_2015()` | `fetch_atlas_basc_multiscale_2015(version="sym", resolution=64)` |
+ 
+Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibles avec les deux options d'environnement. Suite à ces corrections, Marie a pu reproduire le projet sans problème.
 
-### Invoke : 
-Puisque les changements ont pris moins de temps que prévu j'ai ajouté la fonction invoke sur toutes mes taches pour automatiser et optimiser la reproductibilité de mon travail.
-### Prérequis
+### Fichiers ajoutés
+ 
+| Fichier | Rôle |
+|---|---|
+| `environment.yml` | Définition de l'environnement conda (toutes les dépendances) |
+| `requirements-modern.txt` | Dépendances mises à jour pour un environnement venv |
+| `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [airoh](https://github.com/ContextLab/airoh) |
+| `tasks.py` | Définition des tâches `invoke` |
 
-- Python 3.10+
-- Conda **ou** venv
-- environment.yml (créé et ajouté au repo) 
-
-### Installation rapide
-
-J'ai créé les deux options pour rendre la reproductivité accessible aux plus d'utilisateurs possibles en incluant l'option conda, venv avec les commandes en Linux, Mac et Windows
-
+### Installation et reproduction
+ 
+Cloner d'abord le dépôt :
+ 
 ```bash
 git clone https://github.com/psy3019-6973-2026/Villeneuve_Projet_Final
 cd Villeneuve_Projet_Final
-
-# Option 1: Conda
+```
+ 
+Deux options sont ensuite disponibles pour configurer l'environnement :
+ 
+---
+ 
+#### Option A — conda
+ 
+**Prérequis :** [Miniconda](https://docs.conda.io/en/latest/miniconda.html) ou [Anaconda](https://www.anaconda.com/)
+ 
+```bash
 conda env create -f environment.yml
 conda activate abide-fmri
-
-# Option 2: venv
+```
+ 
+#### Option B — venv (sans conda)
+ 
+```bash
+# Linux / macOS
 python -m venv venv_abide
-source venv_abide/bin/activate  # Windows: venv_abide\Scripts\activate
+source venv_abide/bin/activate
+pip install -r requirements-modern.txt
+ 
+# Windows
+python -m venv venv_abide
+venv_abide\Scripts\activate
 pip install -r requirements-modern.txt
 ```
-## Structure du projet
-
-```
-abide-fmri/
-├── Taches/
-│   ├── prepare_data_v2.py              # Préparation des données (features brutes)
-│   ├── tache_2_pca_pipeline_cv.ipynb   # Correction du data leakage (PCA)
-│   ├── tache_3_selectkbest_pipeline_cv.ipynb  # Supervisé vs non-supervisé
-│   ├── comparaison_4_approches.ipynb   # Synthèse des 4 approches
-│   └── output/                         # Résultats & figures
-├── data/                               # Dataset ABIDE (téléchargé automatiquement)
-├── environment.yml
-└── requirements-modern.txt
-```
-### Exécution
-
-Une fois l'environnement activé (conda ou venv):
-
+ 
+---
+ 
+Une fois l'environnement activé :
+ 
 ```bash
-# Enregistrer le kernel Jupyter 
+# Enregistrer le kernel Jupyter
 invoke setup
-
-# Télécharger les données et extraire les features (~ 8h la première fois)
+ 
+# Télécharger les données et extraire les features (~8h la première fois)
 invoke fetch
-
+ 
 # Lancer toutes les analyses
 invoke run
 ```
-### Autres tâches disponibles
+ 
+> L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `Taches/output/ABIDE_BASC064_features.npz` existe déjà.
 
+### Tâches disponibles
+ 
 | Commande | Description |
 |---|---|
 | `invoke setup` | Enregistrer le kernel Jupyter |
 | `invoke fetch` | Télécharger les données ABIDE et extraire les features |
 | `invoke task2` | Exécuter la Tâche 2 (correction PCA) |
 | `invoke task3` | Exécuter la Tâche 3 (leakage SelectKBest) |
-| `invoke visualisation` |Exécuter la visualisation comparative des méthodes abordées
-| `invoke run` | Exécuter toutes les analyses (`fetch` + `task2` + `task3`) |
+| `invoke visualisation` | Exécuter la visualisation comparative des 4 approches |
+| `invoke run` | Exécuter toutes les analyses (`fetch` + `task2` + `task3` + `visualisation`) |
 | `invoke clean` | Supprimer les outputs générés (préserve les features en cache) |
-
+ 
 ```bash
-invoke --list            # afficher toutes les tâches disponibles
-invoke --help <tâche>    # afficher l'aide pour une tâche spécifique
+invoke --list             # afficher toutes les tâches disponibles
+invoke --help <tâche>     # afficher l'aide pour une tâche spécifique
 ```
+ 
+---
 
-> L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `output/ABIDE_BASC064_features.npz` existe déjà.
-
-### Tâche 2 : Correction du pipeline pour éviter le data leakage et test d'une CV de type Stratified GroupKFold
-Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py et l'ajout d'un StandardScaler
-
-#### Problème identifié : 
-##### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
-
-Dans la version actuelle, la réduction de dimension (PCA) est effectuée dans prepare_data.py avant la validation croisée.
-
-Bien que par la suite, les données sont séparées en folds avec GroupKFold, la PCA est calculée avant la séparation. 
-La transformation PCA tient donc compte de tous les participants, incluant ceux qui devraient etre inconnus lors de la validation et du test 
-Bien que cette méthode soit non-supervisée et n'utlise pas les labels, elle peut introduire un biais dans l'estimation des performances à cause du moment ou on l'applique. 
-
-De plus, lors du cours de selection de modeles avec Pravish nous avons vu que le 'meilleur des deux mondes' dans une CV etait le stratiied groupkfold donc pour bonifier mon travail et voir l'impact dune CV mieux adaptee aux donnees j'ai decide d'ajouter cette methode aussi 
-
-#### Objectif : 
-##### Extraction des features -> Validation croisée (GroupKFold ou StratifiedGroupKFold) 
-##### Pipeline pour chaque fold : StandardScaler -> PCA -> LinearSVC 
-Garantir que toutes les transformations sont apprises uniquement sur les données d’entraînement à chaque fold.
-#### Étapes : 
-- Retirer le PCA global du script prepare_data.py
-- Utiliser l'outil sklearn.pipeline pour créer une pipeline et y intégrer le StandardScaler et la réduction de dimensions.
-- Appliquer cette pipeline à l'intérieur des deux validations croisées choisies
-- Recalculer le PCA uniquement sur le training set à chaque fold
-- Comparaison des 4 situations pour voir s'il y a une variation significative
-
+## Tâche 2 — Correction méthodologique : PCA et StratifiedGroupKFold
+ 
+### Problème identifié
+ 
+Dans le pipeline original, la réduction de dimensionnalité par **PCA** était appliquée globalement sur l'ensemble des sujets *avant* la validation croisée :
+ 
+```
+Tous les sujets → PCA → CV split → LinearSVC
+```
+ 
+Cela constitue une forme de **data leakage** : le scaler et les axes de projection PCA sont calculés à partir de l'information de tous les sujets, y compris ceux qui devraient être inconnus au moment de l'évaluation. Parce que la PCA est une méthode **non-supervisée** (elle n'utilise pas les labels de classe), le biais introduit reste faible — mais la pratique demeure méthodologiquement incorrecte.
+ 
+De plus, le projet original utilisait un `GroupKFold` standard. Le `StratifiedGroupKFold` constitue une meilleure option dans ce contexte, car il garantit simultanément que les groupes (sites) ne se chevauchent pas entre les folds *et* que la proportion ASD/contrôles est équilibrée dans chaque fold — le « meilleur des deux mondes » pour ce type de données.
+ 
+### Corrections appliquées
+ 
+**1. PCA intégrée dans la validation croisée** via un `sklearn.pipeline.Pipeline` :
+ 
+```
+CV split
+└─> Pour chaque fold :
+      PCA(99%)        → fit sur train, transform train+test
+      LinearSVC       → fit sur train, score sur test
+```
+ 
+**2. Comparaison de deux stratégies de validation croisée :**
+ 
 ```python
 # Avant (avec leakage)
-X_pca = PCA(0.99).fit_transform(X)  # Tous les sujets!
-cv_scores = cross_val_score(LinearSVC(), X_pca, y, cv=gkfold)
-
+X_pca = PCA(0.99).fit_transform(X)  # Appliqué sur tous les sujets
+cv_scores = cross_val_score(LinearSVC(), X_pca, y, cv=GroupKFold())
+ 
 # Après (sans leakage)
 pipeline = Pipeline([
     ('scaler', StandardScaler()),
     ('pca', PCA(0.99)),
-    ('classifier', LinearSVC())
+    ('classifier', LinearSVC(max_iter=10000))
 ])
-cv_scores = cross_val_score(pipeline, X, y, cv=gkfold)
+cv_scores_gkf  = cross_val_score(pipeline, X, y, cv=GroupKFold())
+cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
 ```
+ 
+### Fichiers
+ 
+| Fichier | Description |
+|---|---|
+| `Taches/prepare_data_v2.py` | Extraction des features sans PCA — retourne les features brutes en 2016 dimensions |
+| `Taches/Tache2_PCA/tache_2_pca_pipeline_cv.ipynb` | Notebook comparant les 4 scénarios (2 CV × leakage/corrigé) |
+ 
+`prepare_data_v2.py` se distingue du script original par la suppression du bloc PCA (fit + transform), retournant les features brutes `(X, y)` en 2016 dimensions au lieu des features réduites.
+ 
+### Résultats
+ 
+![Tâche 2 — Impact du data leakage (PCA) · GKF vs StratifiedGKF](Taches/output/task2_pca_comparison.png)
+ 
+| Approche | CV | Accuracy moyenne |
+|---|---|---|
+| PCA avant CV (leakage) | GroupKFold | 63.6% |
+| PCA avant CV (leakage) | StratifiedGroupKFold | 62.8% |
+| PCA dans CV (corrigé) | GroupKFold | **65.3%** |
+| PCA dans CV (corrigé) | StratifiedGroupKFold | 64.7% |
+ 
+### Interprétation
+ 
+La correction produit une accuracy légèrement **plus élevée** dans les deux types de CV (+1.7% pour GKF, +1.9% pour SGKF). Cela s'explique par le fait que fitter la PCA sur un plus petit set d'entraînement retient moins de composantes (~538 vs 577), ce qui équivaut à une régularisation plus forte et améliore la généralisation à de nouveaux sites.
+ 
+Le `StratifiedGroupKFold` donne une accuracy légèrement plus basse que le `GroupKFold` standard, ce qui est attendu : en imposant un équilibre des classes dans chaque fold, on obtient une évaluation plus rigoureuse mais légèrement plus pessimiste.
+ 
+L'enjeu principal n'est pas la magnitude de ces écarts, mais le **principe méthodologique** : toute transformation qui apprend depuis les données doit être fittée *exclusivement* sur le fold d'entraînement. Le contraste avec la Tâche 3 l'illustre clairement.
+ 
+---
+ 
+## Tâche 3 — Data leakage avec `SelectKBest` : démonstration et essai d'une nouvelle méthode de réduction de features supervisée 
+Cette tâche est divisée en deux parties : **3a** compare PCA et SelectKBest dans des pipelines correctement implémentés, et **3b** démontre et quantifie l'impact du data leakage avec une méthode supervisée.
+ 
+### Tâche 3a — Comparaison PCA vs SelectKBest (pipelines corrigés)
+ 
+#### Objectif
+ 
+Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA) à une méthode **supervisée** (SelectKBest), en gardant le même classifieur (LinearSVC) et la même validation croisée (GroupKFold, 10 splits), avec les deux méthodes correctement intégrées dans un pipeline.
+ 
+#### Pipelines comparés
+ 
+```
+Pipeline PCA (non-supervisé) :
+StandardScaler → PCA(99%) → LinearSVC
+ 
+Pipeline SelectKBest (supervisé) :
+StandardScaler → SelectKBest(f_classif, k=100) → LinearSVC
+```
+ 
+`SelectKBest(f_classif, k=100)` utilise un test ANOVA F pour sélectionner les 100 connexions fonctionnelles les plus discriminantes entre ASD et contrôles.
+ 
+#### Fichier
+ 
+| Fichier | Description |
+|---|---|
+| `Taches/Tache3_SelectKBest/Tache_3a_selectkbest_cv.ipynb` | Comparaison PCA vs SelectKBest dans CV (pipelines corrigés) |
+ 
+---
+ 
+### Tâche 3b — Démonstration du leakage supervisé
+ 
+#### Problème identifié
+ 
+Si `SelectKBest` est appliqué sur l'ensemble des données *avant* la validation croisée :
+ 
+```
+Tous les sujets → SelectKBest(f_classif, y) → CV split → LinearSVC
+```
+ 
+Les sujets du jeu de test ont participé à la sélection des features : les connexions retenues sont artificiellement discriminantes pour ces sujets, et l'accuracy estimée est **gonflée**. Contrairement à la PCA, ce biais est **direct** et va **systématiquement dans le sens d'une surestimation**.
+ 
+#### Correction appliquée
+ 
+```
+CV split (GroupKFold, 10 sites)
+└─> Pour chaque fold :
+      StandardScaler                    → fit sur train, transform train+test
+      SelectKBest(f_classif, k=100)     → fit sur train (y_train uniquement), transform train+test
+      LinearSVC                         → fit sur train, score sur test
+```
+ 
+#### Fichier
+ 
+| Fichier | Description |
+|---|---|
+| `Taches/Tache3_SelectKBest/Tache_3b_comparaison.ipynb` | Démonstration du leakage supervisé, correction et comparaison des 4 approches |
+ 
+#### Résultats
+ 
+| Approche | Accuracy moyenne |
+|---|---|
+| SelectKBest avant CV (leakage) | 64.8% |
+| SelectKBest dans CV (corrigé) | **61.0%** |
+| Différence | **−3.8%** |
+ 
+#### Pourquoi le leakage supervisé est plus grave
+ 
+| Méthode | Type | Direction de l'effet | Magnitude |
+|---|---|---|---|
+| PCA (Tâche 2) | Non-supervisée | Imprévisible | **plus ou moins**~1-2% |
+| SelectKBest (Tâche 3) | Supervisée | **Toujours à la hausse** | ~5% |
+ 
+Avec la PCA, le leakage est indirect : connaître la structure de variance des sujets test n'aide pas directement à les classifier. L'effet est faible et peut aller dans les deux sens.
+ 
+Avec `SelectKBest`, le leakage est direct : les features sont choisies précisément parce qu'elles séparent bien ASD et contrôles sur **l'ensemble** des données, y compris les sujets test. Le modèle dispose d'une information qu'il ne devrait pas avoir, et cet avantage artificiel gonfle systématiquement les performances estimées.
+ 
+---
 
-#### Remarque :
-L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. Dans ce contexte, le PCA est une étape de prétraitement, mais puisqu’il apprend la structure des données, il doit être recalculé à chaque fold pour éviter un biais d’évaluation.
-
-#### Résultat quantitatif : 
-- Il y avait un biais introduit par le leakage (~ 1.3%)
-- Le stratified groupKFold baisse un peu la performance mais cest une méthode plus rigoureuse dans ce contexte 
-- Ce biais est faible et positif (il améliore la performance du Linear SVC!)
-- Apprentissage : un data leakage peut améliorer ou empirer une performance dans une stratégie de réduction de dimensions non-supervisée! (j'étais choquée)
-
-### Tâche 3 : 
-#### Tache 3a : Comparaison de stratégies de réduction de dimensions 
-#### Tache 3b : Illustrer l'impact de l'utilisation de la méthode supervisée sur le data leakage
-
-#### Situation actuelle :
-Le projet original utilise le PCA pour réduire les dimensions. Cette méthode est non supervisée, elle conserve les composantes expliquant le plus de variance globale des données, sans tenir compte du diagnostic. L'idée ici est de comparer une méthode supervisée et une méthode non-supervisée, ainsi que justifier que le script original faisait bel et bien illustration de data leakage. Cette comparaison permettra d’évaluer si une approche supervisée améliore la performance du modèle linéaire, sa stabilité en validation croisée ainsi que l’interprétabilité des connexions. Elle permet aussi d'illustrer l'impact du data leakage
-
-#### Tache 3a 
-##### Objectif: 
-Comparer cette approche de sélection de features non supervisée à une approche supervisée en gardant le même classifieur final (LinearSVC) et la même validation croisée.
-
-#### Comparaison simplifiée des deux méthodes : 
-##### Pipeline 1 (PCA) : 
-- Méthode non-supervisée
-- Maximise la variance globale
-- Transformation des variables en composantes linéaires
-
-##### StandardScaler -> PCA -> LinearSVC
-
-##### Pipeline 2 (sélection supervisée) : 
-- Méthode supervisée
-- Optimisation de la classification TSA vs controles
-- Sélection des 100 connexions les plus importantes
-
-##### StandardScaler -> SelectKBest -> LinearSVC
-***
-### Résultat : 
-Suite à la correction, on remarque que la méthode non-supervisée (PCA) performe mieux dans le 10 GroupKFold que la méthode SelectKBest. 
-***
-#### Tache 3b 
-##### Objectif : implémenter SelectKBest dans l'ancien notebook prepare_data.py avec data leakage puis comparer la différence entre les deux approches 
-
-###### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
-###### Extraction des features -> SelectKBest (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
-***
-#### Résultat : 
-On observe effectivement que le data leakage est minime dans la PCA (2.7%) mais l'impact est DOUBLÉ avec la méthode SelectKBest (5.4%).
-***
-##### Métriques de comparaison et visualisations
-- Accuracy moyenne
-- Variabilité entre folds
-- Nombre de feautures retenues
   
 #### Outils utilisés 
 Nilearn : téléchargement ABIDE, extraction de connectivité 
@@ -238,5 +323,4 @@ Nielsen, J. A., Zielinski, B. A., Fletcher, P. T., Alexander, A. L., Lange, N., 
 Anderson, J. S., Patel, V. B., Preedy, V. R., & Martin, C. R. (2014). Cortical underconnectivity hypothesis in autism. *Comprehensive Guide to Autism*, 1457–1471.
 ###### Licence 
 MIT (voir [LICENSE](LICENSE))
-###### Licence du projet original 
-Creative Commons 
+Projet original sous licence Creative Commons.
