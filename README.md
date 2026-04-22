@@ -36,23 +36,29 @@ Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi
 
 De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
 
-## Tâches choisies
+## Présentation des taches 
 ### Tâche 1 : Reproductibilité du projet du projet original et automatisation avec invoke 
-#### Objectif : S'assurer que le code original fonctionne dans un environnement vierge et automatiser la reproduction du projet 
+#### Objectif : S'assurer que le code original fonctionne dans un environnement vierge, moderniser et automatiser la reproduction du projet 
 Trouvailles : 
-- le requirements.txt du projet original était expiré puisque le projet a été fait en 2020
-- il a fallut créer un nouveau : requirements-modern.txt
-- il a fallut changer le code prepare_data pour changer l'appel de certaines librairies qui avaient changé de nom.
-- tenter la reproduction
+- Les dépendences contenues dans requirements.txt et prepare_data.py du projet original était expiré puisque le projet a été fait en 2020.
+  - Conséquences:
+                  - Il a fallut moderniser les dépendences : requirements-modern.txt
+                  - Il a fallut changer le code prepare_data pour changer l'appel de certaines librairies qui avaient changé de nom: prepare_datav2.py
+- Tenter la reproduction
+  
 ##### Confirmation : suite à ces corrections Marie a pu reproduire le projet sans problème et entamer elle meme ses taches. 
+
 ### Invoke : 
 Puisque les changements ont pris moins de temps que prévu j'ai ajouté la fonction invoke sur toutes mes taches pour automatiser et optimiser la reproductibilité de mon travail.
 ### Prérequis
 
 - Python 3.10+
 - Conda **ou** venv
+- environment.yml (créé et ajouté au repo) 
 
 ### Installation rapide
+
+J'ai créé les deux options pour rendre la reproductivité accessible aux plus d'utilisateurs possibles en incluant l'option conda, venv avec les commandes en Linux, Mac et Windows
 
 ```bash
 git clone https://github.com/psy3019-6973-2026/Villeneuve_Projet_Final
@@ -86,10 +92,10 @@ abide-fmri/
 Une fois l'environnement activé (conda ou venv):
 
 ```bash
-# Enregistrer le kernel Jupyter
+# Enregistrer le kernel Jupyter 
 invoke setup
 
-# Télécharger les données et extraire les features (~8h la première fois)
+# Télécharger les données et extraire les features (~ 8h la première fois)
 invoke fetch
 
 # Lancer toutes les analyses
@@ -103,6 +109,7 @@ invoke run
 | `invoke fetch` | Télécharger les données ABIDE et extraire les features |
 | `invoke task2` | Exécuter la Tâche 2 (correction PCA) |
 | `invoke task3` | Exécuter la Tâche 3 (leakage SelectKBest) |
+| `invoke visualisation` |Exécuter la visualisation comparative des méthodes abordées
 | `invoke run` | Exécuter toutes les analyses (`fetch` + `task2` + `task3`) |
 | `invoke clean` | Supprimer les outputs générés (préserve les features en cache) |
 
@@ -111,11 +118,11 @@ invoke --list            # afficher toutes les tâches disponibles
 invoke --help <tâche>    # afficher l'aide pour une tâche spécifique
 ```
 
-
 > L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `output/ABIDE_BASC064_features.npz` existe déjà.
 
 ### Tâche 2 : Correction du pipeline pour éviter le data leakage et test d'une CV de type Stratified GroupKFold
-Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py
+Dans cette tache, le changement apporté concerne la structure du notebook prepare_data.py et l'ajout d'un StandardScaler
+
 #### Problème identifié : 
 ##### Extraction des features -> PCA (sur tous les sujets) -> Validation croisée (GroupKFold) -> LinearSVC
 
@@ -128,15 +135,15 @@ Bien que cette méthode soit non-supervisée et n'utlise pas les labels, elle pe
 De plus, lors du cours de selection de modeles avec Pravish nous avons vu que le 'meilleur des deux mondes' dans une CV etait le stratiied groupkfold donc pour bonifier mon travail et voir l'impact dune CV mieux adaptee aux donnees j'ai decide d'ajouter cette methode aussi 
 
 #### Objectif : 
-##### Extraction des features -> Validation croisée (GroupKFold) 
+##### Extraction des features -> Validation croisée (GroupKFold ou StratifiedGroupKFold) 
 ##### Pipeline pour chaque fold : StandardScaler -> PCA -> LinearSVC 
 Garantir que toutes les transformations sont apprises uniquement sur les données d’entraînement à chaque fold.
 #### Étapes : 
 - Retirer le PCA global du script prepare_data.py
-- Utiliser l'outil sklearn.pipeline pour créer une pipeline et y intégrer la réduction de dimensions.
-- Appliquer cette pipeline à l'intérieur de la validation croisée.
+- Utiliser l'outil sklearn.pipeline pour créer une pipeline et y intégrer le StandardScaler et la réduction de dimensions.
+- Appliquer cette pipeline à l'intérieur des deux validations croisées choisies
 - Recalculer le PCA uniquement sur le training set à chaque fold
-- Comparaison des deux méthodes pour voir s'il y a une variation significative
+- Comparaison des 4 situations pour voir s'il y a une variation significative
 
 ```python
 # Avant (avec leakage)
@@ -156,8 +163,9 @@ cv_scores = cross_val_score(pipeline, X, y, cv=gkfold)
 L'objectif n'est pas nécessairement d'améliorer l'accuracy mais d'avoir une évaluation méthodologiquement plus robuste. Dans ce contexte, le PCA est une étape de prétraitement, mais puisqu’il apprend la structure des données, il doit être recalculé à chaque fold pour éviter un biais d’évaluation.
 
 #### Résultat quantitatif : 
-- Il y avait un biais introduit par le leakage (~ 2,7%)
-- Ce biais est faible et positif (il améliore la performance du Linear   SVC!)
+- Il y avait un biais introduit par le leakage (~ 1.3%)
+- Le stratified groupKFold baisse un peu la performance mais cest une méthode plus rigoureuse dans ce contexte 
+- Ce biais est faible et positif (il améliore la performance du Linear SVC!)
 - Apprentissage : un data leakage peut améliorer ou empirer une performance dans une stratégie de réduction de dimensions non-supervisée! (j'étais choquée)
 
 ### Tâche 3 : 
