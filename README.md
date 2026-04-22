@@ -30,18 +30,17 @@ La classification est réalisée par un **LinearSVC** (`max_iter=10000`), évalu
 ```
 Villeneuve_Projet_Final/
 ├── Taches/
-│   ├── prepare_data_v2.py                       # Extraction des features (brutes, sans PCA)
+│   ├── Tache1_Setup/                            # Fichiers de configuration invoke
 │   ├── Tache2_PCA/
-│   │   └── tache_2_pca_pipeline_cv.ipynb        # Correction du data leakage — PCA dans CV
-│   ├── Tache3_SelectKBest/
-│   │   ├── Tache_3a_selectkbest_cv.ipynb        # SelectKBest corrigé (dans CV)
-│   │   └── Tache_3b_comparaison.ipynb           # Comparaison des 4 approches
-│   └── output/                                  # Figures générées
-├── data/                                        # Dataset ABIDE (téléchargé automatiquement)
+│   │   └── Tache_2_pca_pipeline_cv.ipynb        # Correction du data leakage — PCA dans CV
+│   └── Tache3_SelectKBest/
+│       ├── Tache_3a_selectkbest_cv.ipynb        # SelectKBest corrigé (dans CV)
+│       └── Tache_3b_comparaison.ipynb           # Démonstration du leakage + comparaison
+├── prepare_data_v2.py                           # Extraction des features (brutes, sans PCA)
+├── tasks.py                                     # Tâches invoke
 ├── environment.yml                              # Environnement conda
 ├── requirements-modern.txt                      # Dépendances pour venv
-├── tasks.py                                     # Tâches invoke
-
+└── LICENSE
 ```
  
 ---
