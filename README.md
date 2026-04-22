@@ -18,7 +18,7 @@ Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi
 
 De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
 ### Données 
-Le dataset ABIDE regroupe des données de 871 participants provenant de 20 sites d'acquisition différents (403 contrôles, 468 ASD). Les données sont prétraitées via le pipeline CPAC (quality-checked) et téléchargées automatiquement via `nilearn`.
+Le dataset ABIDE regroupe des données de 871 participants provenant de 20 sites d'acquisition différents (403 contrôles, 468 ASD). Les données sont prétraitées et téléchargées automatiquement via `nilearn`.
 
 ### Pipeline de base
 Les features sont extraites à partir des séries temporelles de 64 régions cérébrales définies par l'atlas BASC, à l'aide d'un `NiftiLabelsMasker`. Une matrice de connectivité fonctionnelle vectorisée est calculée par sujet, produisant une matrice de features de dimension **(871, 2016)**.
