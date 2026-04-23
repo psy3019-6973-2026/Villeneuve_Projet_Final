@@ -33,13 +33,13 @@ Villeneuve_Projet_Final/
 │   ├── Tache2_PCA/
 │   │   └── Tache_2_pca_pipeline_cv.ipynb        # Correction du data leakage — PCA dans CV
 │   └── Tache3_SelectKBest/
-│       ├── Tache_3a_selectkbest_cv.ipynb        # SelectKBest corrigé (dans CV)
-│       └── Tache_3b_comparaison.ipynb           # Démonstration du leakage + comparaison
+│       ├── Tache_3a_selectkbest_cv.ipynb        # SelectKBest corrigé (dans CV) et démonstration du leakage avec méthode supervisée
+│       └── Tache_3b_comparaison.ipynb           # Comparaison des 4 approches
 ├── prepare_data_v2.py                           # Extraction des features (brutes, sans PCA)
 ├── tasks.py                                     # Tâches invoke
 ├── invoke.yaml                                  # Configuration invoke (chemins des répertoires)
 ├── environment.yml                              # Environnement conda
-├── requirements-modern.txt                      # Dépendances pour venv
+├── requirements-modern.txt                      # Nouvelles dépendances pour venv
 └── LICENSE
 ```
  
@@ -182,7 +182,7 @@ pipeline = Pipeline([
 cv_scores_gkf  = cross_val_score(pipeline, X, y, cv=GroupKFold())
 cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
 ```
- 
+**Dans le code original on faisait la CV manuellement, j'ai utilisé cross_val_score**
 ### Fichiers
  
 | Fichier | Description |
