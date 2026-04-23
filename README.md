@@ -233,8 +233,8 @@ pipeline = Pipeline([
     ('classifier', LinearSVC(max_iter=10000))
 ])
 pipeline = Pipeline([
-    ('pca', PCA(0.99)),
-    ('classifier', LinearSVC(max_iter=10000))
+    ('selector', SelectKBest(f_classif, k=100)),
+    ('clf',      LinearSVC(max_iter=10000))
 ])
 
 ```
