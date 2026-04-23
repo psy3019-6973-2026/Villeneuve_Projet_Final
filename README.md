@@ -1,4 +1,4 @@
-# Projet ABIDE — Prédiction du TSA à partir de l'IRMf de repos
+# Projet ABIDE — Prédiction du TSA à partir de l'IRMf au repos
 
 **Cours :** PSY3019
 
@@ -45,7 +45,7 @@ Villeneuve_Projet_Final/
  
 ---
 
-## Tâche 1 — Reproductibilité et automatisation avec `invoke`
+## Tâche 1 : Reproductibilité et automatisation avec `invoke`
  
 ### Problème identifié
  
@@ -142,7 +142,7 @@ invoke --help <tâche>     # afficher l'aide pour une tâche spécifique
 ```
  
 ---
-## Tâche 2 — Correction méthodologique : PCA et StratifiedGroupKFold
+## Tâche 2 : Correction méthodologique : PCA et StratifiedGroupKFold
  
 ### Problème identifié
  
@@ -215,10 +215,10 @@ L'enjeu principal n'est pas la magnitude de ces écarts, mais le **principe mét
  
 ---
  
-## Tâche 3 — Data leakage avec `SelectKBest` : démonstration et essai d'une nouvelle méthode de réduction de features supervisée 
+## Tâche 3 : Data leakage avec `SelectKBest` : démonstration et essai d'une nouvelle méthode de réduction de features supervisée 
 Cette tâche est divisée en deux parties : **3a** compare PCA et SelectKBest dans des pipelines correctement implémentés, et **3b** démontre et quantifie l'impact du data leakage avec une méthode supervisée.
  
-### Tâche 3a — Comparaison PCA vs SelectKBest (pipelines corrigés)
+### Tâche 3a : Comparaison PCA vs SelectKBest (pipelines corrigés)
  
 #### Objectif
  
@@ -245,7 +245,7 @@ SelectKBest(f_classif, k=100) → LinearSVC
  
 ---
  
-### Tâche 3b — Démonstration du leakage supervisé
+### Tâche 3b : Démonstration du leakage supervisé
  
 #### Problème identifié
  
