@@ -79,10 +79,11 @@ Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibl
 Cloner d'abord le dépôt :
  
 ```bash
-git clone https://github.com/psy3019-6973-2026/Villeneuve_Projet_Final
+git clone -b main https://github.com/psy3019-6973-2026/Villeneuve_Projet_Final
 cd Villeneuve_Projet_Final
 ```
- 
+**Ici la commande git clone -b main est utilisee pour seulement cloner la main branche**
+
 Deux options sont ensuite disponibles pour configurer l'environnement :
  
 ---
@@ -303,6 +304,7 @@ Avec `SelectKBest`, le leakage est direct : les features sont choisies précisé
 - **[numpy](https://numpy.org/) & [pandas](https://pandas.pydata.org/)** — manipulation de données
 - **[matplotlib](https://matplotlib.org/) & [seaborn](https://seaborn.pydata.org/)** — visualisations
 - **[invoke](https://www.pyinvoke.org/)** — automatisation des tâches (template [airoh](https://github.com/airoh-pipeline/airoh-template/tree/main))
+- Assistance pour debug et structurer le repo github : [Claude](https://claude.ai) (Anthropic)
 ---
 
 ## Sources
