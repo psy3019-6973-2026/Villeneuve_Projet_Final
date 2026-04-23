@@ -14,7 +14,7 @@
  
 Ce projet reproduit et améliore le pipeline de classification du [Brainhack School 2020](https://github.com/brainhack-school2020/abide-fmri), dont l'objectif est de prédire un diagnostic de trouble du spectre de l'autisme (TSA) à partir de données d'IRM fonctionnelle de repos (IRMf). 
 ### Pourquoi ce projet ?
-Marie ([@MarieFrancois1](https://github.com/MarieFrancois1)) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme. 
+[Marie](https://github.com/MarieFrancois1) et moi avons choisi ce projet puisqu’il combine neurosciences cognitives et apprentissage automatique autour d’un enjeu clinique important : le diagnostic du trouble du spectre de l’autisme. 
 
 De plus, le fait que le projet soit déjà bien structuré offre un cadre solide pour proposer des améliorations ciblées, nous permettant de consolider nos connaissances en apprentissage automatique appliqué aux données cérébrales.
 ### Données 
@@ -61,7 +61,7 @@ Le projet original reposait sur un environnement `venv` avec un `requirements.tx
 | Import nilearn | `nilearn.input_data` | `nilearn.maskers` |
 | API atlas | `fetch_atlas_basc_multiscale_2015()` | `fetch_atlas_basc_multiscale_2015(version="sym", resolution=64)` |
  
-Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibles avec les deux options d'environnement. Suite à ces corrections, Marie a pu reproduire le projet sans problème.
+Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibles avec les deux options d'environnement. Suite à ces corrections, [Marie](https://github.com/MarieFrancois1) a pu reproduire le projet sans problème.
 
 ### Fichiers ajoutés
 
@@ -69,7 +69,7 @@ Les scripts ont été mis à jour dans `prepare_data_v2.py` pour être compatibl
 |---|---|
 | `environment.yml` | Définition de l'environnement conda (toutes les dépendances) |
 | `requirements-modern.txt` | Dépendances mises à jour pour un environnement venv |
-| `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [https://github.com/airoh-pipeline/airoh-template/tree/main] |
+| `invoke.yaml` | Configuration du projet (chemins des répertoires) — template [airoh](https://github.com/airoh-pipeline/airoh-template/tree/main) |
 | `tasks.py` | Définition des tâches `invoke` |
  
 > Ces fichiers sont placés à la racine du dépôt pour faciliter l'installation, mais ont été créés dans le cadre de cette tâche.
@@ -125,7 +125,7 @@ invoke run
  
 > L'extraction des features prend environ 8 heures. Elle est automatiquement ignorée si le fichier `Taches/output/ABIDE_BASC064_features.npz` existe déjà.
  
-### Tâches disponibles
+### Commandes disponibles
  
 | Commande | Description |
 |---|---|
@@ -142,11 +142,11 @@ invoke --help <tâche>     # afficher l'aide pour une tâche spécifique
 ```
  
 ---
-## Tâche 2 : Correction méthodologique : PCA et StratifiedGroupKFold
+## Tâche 2 : Correction méthodologique PCA et StratifiedGroupKFold
  
 ### Problème identifié
  
-Dans le pipeline original, la réduction de dimensionnalité par **PCA** était appliquée globalement sur l'ensemble des sujets *avant* la validation croisée :
+Dans le pipeline original, la réduction de dimensionnalité par **PCA** était appliquée globalement sur l'ensemble des sujets *avant* la validation croisée.
  
 ```
 Tous les sujets → PCA → CV split → LinearSVC
@@ -154,7 +154,7 @@ Tous les sujets → PCA → CV split → LinearSVC
  
 Cela constitue une forme de **data leakage** : les axes de projection PCA sont calculés à partir de l'information de tous les sujets, y compris ceux qui devraient être inconnus au moment de l'évaluation. Parce que la PCA est une méthode **non-supervisée** (elle n'utilise pas les labels de classe), le biais introduit reste faible — mais la pratique demeure méthodologiquement incorrecte.
  
-De plus, le projet original utilisait un `GroupKFold` standard. Le `StratifiedGroupKFold` constitue une meilleure option dans ce contexte, car il garantit simultanément que les groupes (sites) ne se chevauchent pas entre les folds *et* que la proportion ASD/contrôles est équilibrée dans chaque fold — le « meilleur des deux mondes » pour ce type de données.
+De plus, le projet original utilisait un `GroupKFold` standard. Le `StratifiedGroupKFold` (selon le cours sur la sélection de modèles) constitue une meilleure option dans ce contexte, car il garantit simultanément que les groupes (sites) ne se chevauchent pas entre les folds *et* que la proportion ASD/contrôles est équilibrée dans chaque fold, ce qui est décrit comme le « meilleur des deux mondes » pour ce type de données.
  
 ### Corrections appliquées
  
@@ -215,24 +215,28 @@ L'enjeu principal n'est pas la magnitude de ces écarts, mais le **principe mét
  
 ---
  
-## Tâche 3 : Data leakage avec `SelectKBest` : démonstration et essai d'une nouvelle méthode de réduction de features supervisée 
+## Tâche 3 : Data leakage avec `SelectKBest`, essai d'une nouvelle méthode de réduction de features supervisée et démonstration du data leakage 
 Cette tâche est divisée en deux parties : **3a** compare PCA et SelectKBest dans des pipelines correctement implémentés, et **3b** démontre et quantifie l'impact du data leakage avec une méthode supervisée.
  
 ### Tâche 3a : Comparaison PCA vs SelectKBest (pipelines corrigés)
  
 #### Objectif
  
-Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA) à une méthode **supervisée** (SelectKBest), en gardant le même classifieur (LinearSVC) et la même validation croisée (GroupKFold, 10 splits), avec les deux méthodes correctement intégrées dans un pipeline.
+Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA) à une méthode **supervisée** (SelectKBest), en gardant le même classifieur (LinearSVC) et la même validation croisée (GroupKFold, 10 splits), avec les deux méthodes correctement intégrées dans un pipeline. J'étais curieuse de savoir comment un changement de méthode de réduction de dimensionnalité affectait la performance. 
  
 #### Pipelines comparés
  
  
 ```
-Pipeline PCA (non-supervisé) :
-PCA(99%) → LinearSVC
- 
-Pipeline SelectKBest (supervisé) :
-SelectKBest(f_classif, k=100) → LinearSVC
+pipeline = Pipeline([
+    ('pca', PCA(0.99)),
+    ('classifier', LinearSVC(max_iter=10000))
+])
+pipeline = Pipeline([
+    ('pca', PCA(0.99)),
+    ('classifier', LinearSVC(max_iter=10000))
+])
+
 ```
  
 `SelectKBest(f_classif, k=100)` utilise un test ANOVA F pour sélectionner les 100 connexions fonctionnelles les plus discriminantes entre ASD et contrôles.
@@ -247,23 +251,26 @@ SelectKBest(f_classif, k=100) → LinearSVC
  
 ### Tâche 3b : Démonstration du leakage supervisé
  
-#### Problème identifié
+#### Objectif
  
-Si `SelectKBest` est appliqué sur l'ensemble des données *avant* la validation croisée :
+Démontrer ce qui arrive si une méthode de réduction supervisée (`SelectKBest`) est appliqué sur l'ensemble des données *avant* la validation croisée :
  
 ```
 Tous les sujets → SelectKBest(f_classif, y) → CV split → LinearSVC
 ```
  
-Les sujets du jeu de test ont participé à la sélection des features : les connexions retenues sont artificiellement discriminantes pour ces sujets, et l'accuracy estimée est **gonflée**. Contrairement à la PCA, ce biais est **direct** et va **systématiquement dans le sens d'une surestimation**.
- 
-#### Correction appliquée
+#### Pipeline comparés
  
 ```
+
 CV split (GroupKFold, 10 sites)
 └─> Pour chaque fold :
       SelectKBest(f_classif, k=100)     → fit sur train (y_train uniquement), transform train+test
       LinearSVC                         → fit sur train, score sur test
+
+Pipeline SelectKBest (supervisé) :
+SelectKBest(f_classif, k=100) → LinearSVC  → fit sur tous les sujets
+
 ```
 
 #### Fichier
@@ -290,7 +297,7 @@ CV split (GroupKFold, 10 sites)
 | PCA (Tâche 2) | Non-supervisée | Imprévisible (+ ou −) | ~1–2% |
 | SelectKBest (Tâche 3) | Supervisée | **Toujours à la hausse** | ~3.8% |
  
-Avec la PCA, le leakage est indirect : connaître la structure de variance des sujets test n'aide pas directement à les classifier. L'effet est faible et peut aller dans les deux sens.
+Avec la PCA, le leakage est indirect : connaître la structure de variance des sujets test n'aide pas directement à les classifier. L'effet est faible et peut aller dans les deux sens, dans ce cas ci, intégrer PCA dans un pipeline séparé était bénéfique.
  
 Avec `SelectKBest`, le leakage est direct : les features sont choisies précisément parce qu'elles séparent bien ASD et contrôles sur **l'ensemble** des données, y compris les sujets test. Le modèle dispose d'une information qu'il ne devrait pas avoir, et cet avantage artificiel gonfle systématiquement les performances estimées.
  
@@ -330,4 +337,4 @@ Nielsen, J. A., Zielinski, B. A., Fletcher, P. T., Alexander, A. L., Lange, N., 
 Anderson, J. S., Patel, V. B., Preedy, V. R., & Martin, C. R. (2014). Cortical underconnectivity hypothesis in autism. *Comprehensive Guide to Autism*, 1457–1471.
 ###### Licence 
 MIT (voir [LICENSE](LICENSE))
-Projet original sous licence Creative Commons.
+Projet original sous licence Creative Commons (CC0 1.0 Universal)
