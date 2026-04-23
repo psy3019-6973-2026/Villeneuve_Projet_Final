@@ -263,13 +263,23 @@ Tous les sujets → SelectKBest(f_classif, y) → CV split → LinearSVC
  
 ```
 
-CV split (GroupKFold, 10 sites)
-└─> Pour chaque fold :
-      SelectKBest(f_classif, k=100)     → fit sur train (y_train uniquement), transform train+test
-      LinearSVC                         → fit sur train, score sur test
+Approche 1 — PCA avant CV (leakage)
+X_pca = PCA(0.99).fit_transform(X)
+scores_pca_leakage = cross_val_score(LinearSVC(max_iter=10000), X_pca, y, groups=groups, cv=gkf, n_jobs=-1)
 
-Pipeline SelectKBest (supervisé) :
-SelectKBest(f_classif, k=100) → LinearSVC  → fit sur tous les sujets
+Approche 2 — PCA dans CV (corrigé)
+scores_pca_corrected = cross_val_score(
+    Pipeline([("pca", PCA(0.99)), ("clf", LinearSVC(max_iter=10000))]),
+    X, y, groups=groups, cv=gkf, n_jobs=-1)
+
+Approche 3 — SelectKBest avant CV (leakage)
+X_kbest = SelectKBest(f_classif, k=100).fit_transform(X, y)
+scores_kbest_leakage = cross_val_score(LinearSVC(max_iter=10000), X_kbest, y, groups=groups, cv=gkf, n_jobs=-1)
+
+Approche 4 — SelectKBest dans CV (corrigé)
+scores_kbest_corrected = cross_val_score(
+    Pipeline([("selector", SelectKBest(f_classif, k=100)), ("clf", LinearSVC(max_iter=10000))]),
+    X, y, groups=groups, cv=gkf, n_jobs=-1)
 
 ```
 
