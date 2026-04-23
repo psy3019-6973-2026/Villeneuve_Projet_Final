@@ -216,20 +216,17 @@ L'enjeu principal n'est pas la magnitude de ces écarts, mais le **principe mét
 ## Tâche 3 : Data leakage avec `SelectKBest`, essai d'une nouvelle méthode de réduction de features supervisée et démonstration du data leakage 
 Cette tâche est divisée en deux parties : **3a** compare PCA et SelectKBest dans des pipelines correctement implémentés, et **3b** démontre et quantifie l'impact du data leakage avec une méthode supervisée.
  
-### Tâche 3a : Comparaison PCA vs SelectKBest (pipelines corrigés)
+### Tâche 3a : Démonstration du leakage supervisé
  
 #### Objectif
- 
-Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA) à une méthode **supervisée** (SelectKBest), en gardant le même classifieur (LinearSVC) et la même validation croisée (GroupKFold, 10 splits), avec les deux méthodes correctement intégrées dans un pipeline. J'étais curieuse de savoir comment un changement de méthode de réduction de dimensionnalité affectait la performance. 
- 
+Démontrer ce qui arrive si une méthode de réduction supervisée (`SelectKBest`) est appliqué sur l'ensemble des données *avant* la validation croisée :
+
+
 #### Pipelines comparés
  
- 
 ```
-pipeline = Pipeline([
-    ('pca', PCA(0.99)),
-    ('classifier', LinearSVC(max_iter=10000))
-])
+Tous les sujets → SelectKBest(f_classif, y) → CV split → LinearSVC
+
 pipeline = Pipeline([
     ('selector', SelectKBest(f_classif, k=100)),
     ('clf',      LinearSVC(max_iter=10000))
@@ -243,22 +240,24 @@ pipeline = Pipeline([
  
 | Fichier | Description |
 |---|---|
-| `Taches/Tache3_SelectKBest/Tache_3a_selectkbest_cv.ipynb` | Comparaison PCA vs SelectKBest dans CV (pipelines corrigés) |
- 
+| `Taches/Tache3_SelectKBest/Tache_3a_selectkbest_cv.ipynb` | Démonstration du leakage supervisé|
+
+#### Résultats
+
+| Approche | Accuracy moyenne |
+|---|---|
+| SelectKBest avant CV (leakage) | 64.8% |
+| SelectKBest dans CV (corrigé) | **61.0%** |
+| Différence | **−3.8%** |
 ---
  
-### Tâche 3b : Démonstration du leakage supervisé
+### Tâche 3b : Comparaison PCA vs SelectKBest, corrigé et non corrigé
  
 #### Objectif
- 
-Démontrer ce qui arrive si une méthode de réduction supervisée (`SelectKBest`) est appliqué sur l'ensemble des données *avant* la validation croisée :
- 
-```
-Tous les sujets → SelectKBest(f_classif, y) → CV split → LinearSVC
-```
- 
+
+Comparer une méthode de réduction de dimensionnalité **non-supervisée** (PCA) à une méthode **supervisée** (SelectKBest), en gardant le même classifieur (LinearSVC) et la même validation croisée (GroupKFold, 10 splits), avec les deux méthodes correctement intégrées dans un pipeline et avec data leakage. J'étais curieuse de savoir comment un changement de méthode de réduction de dimensionnalité et la correction en pipeline affectait la performance. 
+
 #### Pipeline comparés
- 
 ```
 
 Approche 1 — PCA avant CV (leakage)
@@ -285,15 +284,9 @@ scores_kbest_corrected = cross_val_score(
  
 | Fichier | Description |
 |---|---|
-| `Taches/Tache3_SelectKBest/Tache_3b_comparaison.ipynb` | Démonstration du leakage supervisé, correction et comparaison des 4 approches |
+| `Taches/Tache3_SelectKBest/Tache_3b_comparaison.ipynb` |  Comparaison PCA vs SelectKBest dans CV (pipelines corrigés) |
  
 #### Résultats
- 
-| Approche | Accuracy moyenne |
-|---|---|
-| SelectKBest avant CV (leakage) | 64.8% |
-| SelectKBest dans CV (corrigé) | **61.0%** |
-| Différence | **−3.8%** |
 
 <img width="1263" height="519" alt="image" src="https://github.com/user-attachments/assets/021c055c-c9fb-499f-8d91-eb1e1679e11b" />
 
@@ -303,7 +296,7 @@ scores_kbest_corrected = cross_val_score(
 | Méthode | Type | Direction de l'effet | Magnitude |
 |---|---|---|---|
 | PCA (Tâche 2) | Non-supervisée | Imprévisible (+ ou −) | ~1–2% |
-| SelectKBest (Tâche 3) | Supervisée | **Toujours à la hausse** | ~3.8% |
+| SelectKBest (Tâche 3a) | Supervisée | **Toujours à la hausse** | ~3.8% |
  
 Avec la PCA, le leakage est indirect : connaître la structure de variance des sujets test n'aide pas directement à les classifier. L'effet est faible et peut aller dans les deux sens, dans ce cas ci, intégrer PCA dans un pipeline séparé était bénéfique.
  
