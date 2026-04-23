@@ -1,4 +1,4 @@
-# Projet ABIDE — Prédiction du TSA à partir de l'IRMf au repos
+# Projet ABIDE : Prédiction du TSA à partir de l'IRMf au repos
 
 **Cours :** PSY3019
 
