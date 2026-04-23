@@ -151,7 +151,7 @@ Dans le pipeline original, la réduction de dimensionnalité par **PCA** était 
 Tous les sujets → PCA → CV split → LinearSVC
 ```
  
-Cela constitue une forme de **data leakage** : le scaler et les axes de projection PCA sont calculés à partir de l'information de tous les sujets, y compris ceux qui devraient être inconnus au moment de l'évaluation. Parce que la PCA est une méthode **non-supervisée** (elle n'utilise pas les labels de classe), le biais introduit reste faible — mais la pratique demeure méthodologiquement incorrecte.
+Cela constitue une forme de **data leakage** : les axes de projection PCA sont calculés à partir de l'information de tous les sujets, y compris ceux qui devraient être inconnus au moment de l'évaluation. Parce que la PCA est une méthode **non-supervisée** (elle n'utilise pas les labels de classe), le biais introduit reste faible — mais la pratique demeure méthodologiquement incorrecte.
  
 De plus, le projet original utilisait un `GroupKFold` standard. Le `StratifiedGroupKFold` constitue une meilleure option dans ce contexte, car il garantit simultanément que les groupes (sites) ne se chevauchent pas entre les folds *et* que la proportion ASD/contrôles est équilibrée dans chaque fold — le « meilleur des deux mondes » pour ce type de données.
  
@@ -175,7 +175,6 @@ cv_scores = cross_val_score(LinearSVC(), X_pca, y, cv=GroupKFold())
  
 # Après (sans leakage)
 pipeline = Pipeline([
-    ('scaler', StandardScaler()),
     ('pca', PCA(0.99)),
     ('classifier', LinearSVC(max_iter=10000))
 ])
@@ -187,14 +186,14 @@ cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
  
 | Fichier | Description |
 |---|---|
-| `Taches/prepare_data_v2.py` | Extraction des features sans PCA — retourne les features brutes en 2016 dimensions |
-| `Taches/Tache2_PCA/tache_2_pca_pipeline_cv.ipynb` | Notebook comparant les 4 scénarios (2 CV × leakage/corrigé) |
+| `prepare_data_v2.py` | Extraction des features sans PCA — retourne les features brutes en 2016 dimensions |
+| `Taches/Tache2_PCA/Tache_2_pca_pipeline_cv.ipynb` | Notebook comparant les 4 scénarios (2 CV × leakage/corrigé) |
  
 `prepare_data_v2.py` se distingue du script original par la suppression du bloc PCA (fit + transform), retournant les features brutes `(X, y)` en 2016 dimensions au lieu des features réduites.
  
 ### Résultats
  
-![Tâche 2 — Impact du data leakage (PCA) · GKF vs StratifiedGKF](Taches/output/task2_pca_comparison.png)
+![Tâche 2 — Impact du data leakage (PCA) · GKF vs StratifiedGKF](Taches/output/Tache_2_pca_leakage.png)
  
 | Approche | CV | Accuracy moyenne |
 |---|---|---|
