@@ -194,8 +194,6 @@ cv_scores_sgkf = cross_val_score(pipeline, X, y, cv=StratifiedGroupKFold())
  
 ### Résultats
  
-![Tâche 2 — Impact du data leakage (PCA) · GKF vs StratifiedGKF](Taches/output/Tache_2_pca_leakage.png)
- 
 | Approche | CV | Accuracy moyenne |
 |---|---|---|
 | PCA avant CV (leakage) | GroupKFold | 63.6% |
