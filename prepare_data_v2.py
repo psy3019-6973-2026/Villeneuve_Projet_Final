@@ -19,12 +19,13 @@ import numpy as np
 import os
 import pandas as pd
 
-def prepare_data(data_dir, output_dir, pipeline="cpac", quality_checked=True):
+def prepare_data(data_dir, output_dir, pipeline="cpac", quality_checked=True, n_subjects=None):
     # Chargement du dataset ABIDE (téléchargement si nécessaire)
     print("Chargement du dataset...")
     abide = datasets.fetch_abide_pcp(data_dir=data_dir,
                                      pipeline=pipeline,
-                                     quality_checked=quality_checked)
+                                     quality_checked=quality_checked,
+                                     n_subjects=n_subjects)
 
     # Liste des fichiers fMRI preprocessés
     fmri_filenames = abide.func_preproc
@@ -88,8 +89,11 @@ def run():
     parser.add_argument("output_dir", action="store",
                         help="""Chemin vers le répertoire où sauvegarder les résultats
                         (features extraites).""")
+    parser.add_argument("--n-subjects", type=int, default=None,
+                        help="Nombre de sujets à charger (None = tous).")
     args = parser.parse_args()
-    X_features, y_target = prepare_data(args.data_dir, args.output_dir)
+    X_features, y_target = prepare_data(args.data_dir, args.output_dir,
+                                        n_subjects=args.n_subjects)
 
     return X_features, y_target
 
